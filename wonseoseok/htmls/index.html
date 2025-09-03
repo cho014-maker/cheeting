@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>연구 계획서</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animate-gradient-shift { animation: gradient-shift 15s ease-in-out infinite; }
+    </style>
+</head>
+<body class="bg-black text-white">
+
+    <!-- 애니메이션 배경 -->
+    <div class="absolute inset-0 z-0 bg-gradient-to-r from-red-500 via-yellow-500 to-red-500 bg-fixed bg-[length:200%_auto] animate-gradient-shift"></div>
+
+    <div class="relative z-10 min-h-screen bg-black bg-opacity-70 p-4 sm:p-8">
+        <div class="container mx-auto max-w-4xl py-12">
+            <!-- Header Section -->
+            <header id="header-section" class="text-center mb-12 p-8 rounded-xl bg-gradient-to-tr from-red-500 to-orange-500 bg-opacity-80 drop-shadow-lg">
+                <!-- Content will be inserted by JavaScript -->
+            </header>
+
+            <!-- Main Content Sections -->
+            <main id="main-sections">
+                <!-- Content will be inserted by JavaScript -->
+            </main>
+            
+            <!-- References Section -->
+            <div id="references-section" class="mt-12 p-6 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl shadow-lg text-white">
+                <!-- Content will be inserted by JavaScript -->
+            </div>
+
+            <!-- Glossary Section -->
+            <div id="glossary-section" class="mt-12 p-6 bg-gradient-to-bl from-green-500 to-teal-500 rounded-xl shadow-lg text-white">
+                <!-- Content will be inserted by JavaScript -->
+            </div>
+            
+            <!-- Summary Section -->
+            <div id="summary-section" class="mt-12 p-6 bg-gradient-to-tr from-pink-500 to-fuchsia-500 rounded-xl shadow-lg text-white text-center">
+                <!-- Content will be inserted by JavaScript -->
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // 연구 계획서 데이터를 포함하는 객체
+        const researchData = {
+            title: '게임 속 치팅 프로그램의<br />동작 원리 분석',
+            intro: '본 연구는 온라인 게임의 공정한 환경을 해치는 치팅 프로그램의 동작 원리를 기술적으로 분석하고,<br />이를 방어하기 위한 게임 보안의 중요성을 탐구합니다. 이는 정보보안에 대한 심도 깊은 이해를 돕는 중요한 과제입니다.',
+            sections: [
+                {
+                    title: '연구 목적 및 문제',
+                    content: [
+                        '치팅 프로그램이 게임에 어떻게 영향을 미치는지 기술적으로 분석하고, 이를 방어하기 위한 게임 보안의 중요성을 밝힙니다.',
+                        '치팅 프로그램은 게임의 어떤 데이터(<span class="text-white font-bold">메모리, 네트워크 패킷</span> 등)를 조작하는가?',
+                        '게임사는 이를 막기 위해 어떤 보안 기술(<span class="text-white font-bold">안티 치트</span>)을 사용하는가?',
+                    ],
+                    type: 'list',
+                    color: 'bg-gradient-to-br from-red-500 to-red-700'
+                },
+                {
+                    title: '이론적 배경',
+                    content: [
+                        '운영체제(메모리 관리), 네트워크 프로토콜(TCP/IP), 데이터 구조와 알고리즘, 암호화/해싱 기술',
+                        '선행 연구 조사: 게임 핵의 유형 및 기술 분석, 안티 치트 시스템의 발전 과정, 온라인 게임의 보안 위협과 대응 전략',
+                    ],
+                    type: 'list',
+                    color: 'bg-gradient-to-br from-orange-500 to-orange-700'
+                },
+                {
+                    title: '연구 내용 및 방법',
+                    content: [
+                        {
+                            heading: '네트워크 패킷 캡처 및 분석',
+                            text: 'Wireshark와 같은 <span class="text-white font-bold">네트워크 분석 도구</span>를 이용해 게임 트래픽을 캡처하고, <span class="text-white font-bold">`pyshark`</span> 라이브러리로 패킷 데이터를 분석하여 이상 패턴을 식별합니다.',
+                        },
+                        {
+                            heading: '데이터 기반 이상 탐지 모델 개발',
+                            text: '패킷 특징 데이터를 <span class="text-white font-bold">`scikit-learn`</span> 라이브러리를 활용하여 이상 행위를 탐지하는 <span class="text-white font-bold">머신러닝 모델</span>을 구축합니다.',
+                        },
+                        {
+                            heading: '결과 보고서 작성 및 결론 도출',
+                            text: '분석 결과를 <span class="text-white font-bold">`matplotlib`</span> 등으로 시각화하고, 치팅 프로그램의 동작 원리 및 보안 방어 전략에 대한 보고서를 작성합니다.',
+                        },
+                    ],
+                    type: 'sub-section',
+                    color: 'bg-gradient-to-br from-yellow-500 to-yellow-700'
+                },
+                {
+                    title: '기대 효과 및 활용 방안',
+                    content: [
+                        '게임 개발자를 꿈꾸는 학생들에게 게임 보안의 중요성을 알리고, 실질적인 코딩 경험을 통해 문제를 해결하는 역량을 키웁니다.',
+                    ],
+                    type: 'list',
+                    color: 'bg-gradient-to-br from-lime-500 to-lime-700'
+                },
+            ],
+            references: [
+                {
+                    author: '이창선, 유진호',
+                    year: '2015',
+                    title: '온라인 게임 내의 핵 프로그램 탐지 방법',
+                    journal: '한국정보통신학회 논문지',
+                    url: 'https://scienceon.kisti.re.kr/srch/selectPORSrchArticle.do?cn=NPAP12621612'
+                },
+                {
+                    author: '곽병일, 김휘강',
+                    year: '2015',
+                    title: '온라인 게임에서의 이상 징후 탐지 기법 조사 및 분류',
+                    journal: '한국정보보호학회 논문지',
+                    url: 'https://koreascience.kr/article/JAKO201533678768394.page?&lang=ko'
+                },
+            ],
+            glossary: [
+                {
+                    term: '네트워크 패킷',
+                    definition: '컴퓨터 네트워크를 통해 데이터를 주고받을 때, 데이터가 작게 나뉘어 전송되는 단위입니다. 모든 온라인 게임 정보(캐릭터 움직임, 공격 등)는 패킷 형태로 오갑니다.'
+                },
+                {
+                    term: 'Wireshark',
+                    definition: '네트워크 패킷을 캡처하고 분석하는 데 사용되는 유명한 무료 소프트웨어입니다.'
+                },
+                {
+                    term: 'pyshark',
+                    definition: 'Python에서 Wireshark의 기능을 사용할 수 있게 해주는 라이브러리입니다.'
+                },
+                {
+                    term: 'scikit-learn',
+                    definition: 'Python의 대표적인 머신러닝 라이브러리로, 데이터 분석과 모델 구축을 위한 다양한 도구를 제공합니다.'
+                },
+            ],
+            summary: '본 연구는 온라인 게임 내 치팅 프로그램의 기술적 동작 원리를 분석하고, 이에 대한 게임 보안 방어 전략을 탐구하는 것을 목표로 합니다.'
+        };
+
+        function createHeader() {
+            const header = document.getElementById('header-section');
+            header.innerHTML = `
+                <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight mb-4 text-white drop-shadow-md">
+                    ${researchData.title}
+                </h1>
+                <p class="text-xl max-w-2xl mx-auto leading-relaxed text-gray-200">
+                    ${researchData.intro}
+                </p>
+            `;
+        }
+
+        function createSections() {
+            const main = document.getElementById('main-sections');
+            let sectionsHtml = '';
+            researchData.sections.forEach(section => {
+                let contentHtml = '';
+                if (section.type === 'list') {
+                    contentHtml = `<ul class="list-disc list-inside space-y-2 leading-relaxed">
+                        ${section.content.map(item => `
+                            <li class="flex items-start">
+                                <span class="mr-2">•</span>
+                                <span class="flex-1">${item}</span>
+                            </li>
+                        `).join('')}
+                    </ul>`;
+                } else if (section.type === 'sub-section') {
+                    contentHtml = `<div class="space-y-6">
+                        ${section.content.map(item => `
+                            <div class="p-4 bg-black bg-opacity-10 rounded-lg border border-white border-opacity-20">
+                                <h3 class="text-xl font-semibold mb-2">${item.heading}</h3>
+                                <p class="leading-relaxed">${item.text}</p>
+                            </div>
+                        `).join('')}
+                    </div>`;
+                }
+
+                sectionsHtml += `
+                    <div class="mb-8 p-6 ${section.color} rounded-xl shadow-lg text-white transform transition duration-500 hover:scale-[1.01] hover:shadow-2xl">
+                        <h2 class="text-3xl font-bold mb-4 border-b-2 border-white pb-2">${section.title}</h2>
+                        ${contentHtml}
+                    </div>
+                `;
+            });
+            main.innerHTML = sectionsHtml;
+        }
+
+        function createReferences() {
+            const references = document.getElementById('references-section');
+            let refsHtml = `
+                <h2 class="text-3xl font-bold mb-4 border-b-2 border-white pb-2">참고 문헌</h2>
+                <div class="space-y-2">
+            `;
+            researchData.references.forEach(ref => {
+                refsHtml += `
+                    <a href="${ref.url}" target="_blank" rel="noopener noreferrer" class="block">
+                        <div class="bg-white bg-opacity-20 p-4 rounded-lg mb-4 text-white transition duration-300 hover:bg-opacity-30">
+                            <p class="text-sm">
+                                <span class="font-semibold">${ref.author}.</span> (${ref.year}). <span class="italic">${ref.title}.</span> <span class="font-medium">${ref.journal}.</span>
+                            </p>
+                        </div>
+                    </a>
+                `;
+            });
+            refsHtml += `</div>`;
+            references.innerHTML = refsHtml;
+        }
+
+        function createGlossary() {
+            const glossary = document.getElementById('glossary-section');
+            let glossaryHtml = `
+                <h2 class="text-3xl font-bold mb-4 border-b-2 border-white pb-2">용어집</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+            `;
+            researchData.glossary.forEach(item => {
+                glossaryHtml += `
+                    <div class="mb-4 p-4 bg-white bg-opacity-20 rounded-lg text-white">
+                        <h3 class="text-lg font-bold mb-1">${item.term}</h3>
+                        <p class="leading-relaxed text-sm">${item.definition}</p>
+                    </div>
+                `;
+            });
+            glossaryHtml += `</div>`;
+            glossary.innerHTML = glossaryHtml;
+        }
+
+        function createSummary() {
+            const summary = document.getElementById('summary-section');
+            summary.innerHTML = `
+                <h2 class="text-xl font-bold mb-2">한줄 요약</h2>
+                <p class="leading-relaxed">${researchData.summary}</p>
+            `;
+        }
+
+        window.onload = function() {
+            createHeader();
+            createSections();
+            createReferences();
+            createGlossary();
+            createSummary();
+        };
+    </script>
+</body>
+</html>
