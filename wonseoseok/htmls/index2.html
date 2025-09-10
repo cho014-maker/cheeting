@@ -284,8 +284,36 @@ for i, team in enumerate(teams):
                 teamsOutput.innerHTML = `<p class="text-gray-500 dark:text-gray-400">팀 구성 결과가 없습니다.</p>`;
                 return;
             }
+            
+            const interestMap = {
+                '높음': 3,
+                '보통': 2,
+                '낮음': 1
+            };
+
+            const reverseInterestMap = {
+                '3': '높음',
+                '2': '보통',
+                '1': '낮음'
+            };
 
             teams.forEach((team, index) => {
+                // 팀의 평균 성적 계산
+                const totalGrade = team.reduce((sum, student) => sum + student.grade, 0);
+                const avgGrade = team.length > 0 ? (totalGrade / team.length).toFixed(1) : 0;
+                
+                // 팀의 평균 흥미도 계산 (수치화 후 다시 문자열로 변환)
+                const totalInterestScore = team.reduce((sum, student) => sum + interestMap[student.interest], 0);
+                const avgInterestScore = team.length > 0 ? totalInterestScore / team.length : 0;
+                let avgInterest = '';
+                if (avgInterestScore >= 2.5) {
+                    avgInterest = '높음';
+                } else if (avgInterestScore >= 1.5) {
+                    avgInterest = '보통';
+                } else {
+                    avgInterest = '낮음';
+                }
+
                 const teamBox = document.createElement('div');
                 teamBox.className = 'bg-gray-50 dark:bg-gray-700 p-6 rounded-xl border border-gray-200 dark:border-gray-600 shadow-md';
                 
@@ -293,6 +321,11 @@ for i, team in enumerate(teams):
                 teamTitle.className = 'text-xl font-semibold mb-3 border-b border-gray-300 dark:border-gray-500 pb-2 text-blue-600 dark:text-blue-400';
                 teamTitle.textContent = `팀 ${index + 1}`;
                 teamBox.appendChild(teamTitle);
+
+                const teamStats = document.createElement('p');
+                teamStats.className = 'text-sm text-gray-700 dark:text-gray-300 mb-4';
+                teamStats.innerHTML = `<strong>평균 성적:</strong> ${avgGrade}점 | <strong>평균 흥미도:</strong> ${avgInterest}`;
+                teamBox.appendChild(teamStats);
                 
                 const ul = document.createElement('ul');
                 ul.className = 'list-none space-y-2';
