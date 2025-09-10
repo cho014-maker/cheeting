@@ -22,36 +22,35 @@
 </head>
 <body class="bg-black text-white">
 
-    <!-- 애니메이션 배경 -->
+    <!-- 배경 그라데이션 애니메이션 -->
     <div class="absolute inset-0 z-0 bg-gradient-to-r from-red-500 via-yellow-500 to-red-500 bg-fixed bg-[length:200%_auto] animate-gradient-shift"></div>
 
-    <div class="relative z-10 min-h-screen bg-black bg-opacity-70 p-4 sm:p-8">
-        <div class="container mx-auto max-w-4xl py-12">
+    <div class="relative z-10 min-h-screen p-4 sm:p-8">
+        <div class="container mx-auto max-w-4xl py-12 space-y-8">
             <!-- Header Section -->
-            <header id="header-section" class="text-center mb-12 p-8 rounded-xl bg-gradient-to-tr from-red-500 to-orange-500 bg-opacity-80 drop-shadow-lg">
+            <header id="header-section" class="text-center p-8 rounded-xl drop-shadow-lg transform transition-transform duration-500 hover:scale-[1.01] hover:drop-shadow-2xl">
                 <!-- Content will be inserted by JavaScript -->
             </header>
 
             <!-- Main Content Sections -->
-            <main id="main-sections">
+            <main id="main-sections" class="space-y-8">
                 <!-- Content will be inserted by JavaScript -->
             </main>
             
             <!-- References Section -->
-            <div id="references-section" class="mt-12 p-6 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl shadow-lg text-white">
+            <div id="references-section" class="p-6 rounded-xl shadow-lg text-white transform transition-transform duration-500 hover:scale-[1.01] hover:shadow-2xl">
                 <!-- Content will be inserted by JavaScript -->
             </div>
 
             <!-- Glossary Section -->
-            <div id="glossary-section" class="mt-12 p-6 bg-gradient-to-bl from-green-500 to-teal-500 rounded-xl shadow-lg text-white">
+            <div id="glossary-section" class="p-6 rounded-xl shadow-lg text-white transform transition-transform duration-500 hover:scale-[1.01] hover:shadow-2xl">
                 <!-- Content will be inserted by JavaScript -->
             </div>
             
             <!-- Summary Section -->
-            <div id="summary-section" class="mt-12 p-6 bg-gradient-to-tr from-pink-500 to-fuchsia-500 rounded-xl shadow-lg text-white text-center">
+            <div id="summary-section" class="p-6 rounded-xl shadow-lg text-white text-center transform transition-transform duration-500 hover:scale-[1.01] hover:shadow-2xl">
                 <!-- Content will be inserted by JavaScript -->
             </div>
-
         </div>
     </div>
 
@@ -60,6 +59,9 @@
         const researchData = {
             title: '게임 속 치팅 프로그램의<br />동작 원리 분석',
             intro: '본 연구는 온라인 게임의 공정한 환경을 해치는 치팅 프로그램의 동작 원리를 기술적으로 분석하고,<br />이를 방어하기 위한 게임 보안의 중요성을 탐구합니다. 이는 정보보안에 대한 심도 깊은 이해를 돕는 중요한 과제입니다.',
+            header: {
+                color: 'bg-gradient-to-tr from-red-500 to-orange-500'
+            },
             sections: [
                 {
                     title: '연구 목적 및 문제',
@@ -68,7 +70,7 @@
                         '치팅 프로그램은 게임의 어떤 데이터(<span class="text-white font-bold">메모리, 네트워크 패킷</span> 등)를 조작하는가?',
                         '게임사는 이를 막기 위해 어떤 보안 기술(<span class="text-white font-bold">안티 치트</span>)을 사용하는가?',
                     ],
-                    type: 'list',
+                    type: 'visual-problem-solution',
                     color: 'bg-gradient-to-br from-red-500 to-red-700'
                 },
                 {
@@ -104,49 +106,79 @@
                     content: [
                         '게임 개발자를 꿈꾸는 학생들에게 게임 보안의 중요성을 알리고, 실질적인 코딩 경험을 통해 문제를 해결하는 역량을 키웁니다.',
                     ],
-                    type: 'list',
+                    type: 'visual-effect',
                     color: 'bg-gradient-to-br from-lime-500 to-lime-700'
                 },
             ],
-            references: [
-                {
-                    author: '이창선, 유진호',
-                    year: '2015',
-                    title: '온라인 게임 내의 핵 프로그램 탐지 방법',
-                    journal: '한국정보통신학회 논문지',
-                    url: 'https://scienceon.kisti.re.kr/srch/selectPORSrchArticle.do?cn=NPAP12621612'
-                },
-                {
-                    author: '곽병일, 김휘강',
-                    year: '2015',
-                    title: '온라인 게임에서의 이상 징후 탐지 기법 조사 및 분류',
-                    journal: '한국정보보호학회 논문지',
-                    url: 'https://koreascience.kr/article/JAKO201533678768394.page?&lang=ko'
-                },
-            ],
-            glossary: [
-                {
-                    term: '네트워크 패킷',
-                    definition: '컴퓨터 네트워크를 통해 데이터를 주고받을 때, 데이터가 작게 나뉘어 전송되는 단위입니다. 모든 온라인 게임 정보(캐릭터 움직임, 공격 등)는 패킷 형태로 오갑니다.'
-                },
-                {
-                    term: 'Wireshark',
-                    definition: '네트워크 패킷을 캡처하고 분석하는 데 사용되는 유명한 무료 소프트웨어입니다.'
-                },
-                {
-                    term: 'pyshark',
-                    definition: 'Python에서 Wireshark의 기능을 사용할 수 있게 해주는 라이브러리입니다.'
-                },
-                {
-                    term: 'scikit-learn',
-                    definition: 'Python의 대표적인 머신러닝 라이브러리로, 데이터 분석과 모델 구축을 위한 다양한 도구를 제공합니다.'
-                },
-            ],
-            summary: '본 연구는 온라인 게임 내 치팅 프로그램의 기술적 동작 원리를 분석하고, 이에 대한 게임 보안 방어 전략을 탐구하는 것을 목표로 합니다.'
+            references: {
+                content: [
+                    {
+                        year: '2015',
+                        title: '온라인 게임 내의 핵 프로그램 탐지 방법',
+                        journal: '한국정보통신학회 논문지',
+                        url: 'https://scienceon.kisti.re.kr/srch/selectPORSrchArticle.do?cn=NPAP12621612'
+                    },
+                    {
+                        year: '2015',
+                        title: '온라인 게임에서의 이상 징후 탐지 기법 조사 및 분류',
+                        journal: '한국정보보호학회 논문지',
+                        url: 'https://koreascience.kr/article/JAKO201533678768394.page?&lang=ko'
+                    },
+                    {
+                        year: '2020',
+                        title: '온라인 게임 불법 프로그램 탐지를 위한 게임 메모리 분석 기법',
+                        journal: '한국정보보호학회 논문지',
+                        url: 'https://koreascience.kr/article/JAKO202029562723048.page'
+                    },
+                    {
+                        year: '2021',
+                        title: '딥러닝 기반 게임 이상 행위 탐지 시스템 연구',
+                        journal: '한국정보보호학회 논문지',
+                        url: 'https://www.koreascience.kr/article/JAKO202111162386862.page'
+                    }
+                ],
+                color: 'bg-gradient-to-br from-purple-500 to-indigo-500'
+            },
+            glossary: {
+                content: [
+                    {
+                        term: '네트워크 패킷',
+                        definition: '컴퓨터 네트워크를 통해 데이터를 주고받을 때, 데이터가 작게 나뉘어 전송되는 단위입니다. 모든 온라인 게임 정보(캐릭터 움직임, 공격 등)는 패킷 형태로 오갑니다.'
+                    },
+                    {
+                        term: 'Wireshark',
+                        definition: '네트워크 패킷을 캡처하고 분석하는 데 사용되는 유명한 무료 소프트웨어입니다.'
+                    },
+                    {
+                        term: 'pyshark',
+                        definition: 'Python에서 Wireshark의 기능을 사용할 수 있게 해주는 라이브러리입니다.'
+                    },
+                    {
+                        term: 'scikit-learn',
+                        definition: 'Python의 대표적인 머신러닝 라이브러리로, 데이터 분석과 모델 구축을 위한 다양한 도구를 제공합니다.'
+                    },
+                ],
+                color: 'bg-gradient-to-bl from-green-500 to-teal-500'
+            },
+            summary: {
+                content: '본 연구는 온라인 게임 내 치팅 프로그램의 기술적 동작 원리를 분석하고, 이에 대한 게임 보안 방어 전략을 탐구하는 것을 목표로 합니다.',
+                color: 'bg-gradient-to-tr from-pink-500 to-fuchsia-500'
+            }
+        };
+
+        // 문제 및 기대효과 섹션을 위한 SVG 아이콘
+        const icons = {
+            skull: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 text-white"><path d="M12 2L9.19 8.76L2 9.27L7.54 14.1L5.82 21.07L12 17.27L18.18 21.07L16.46 14.1L21.99 9.27L14.81 8.76L12 2Z"></path><circle cx="9" cy="11" r="1"></circle><circle cx="15" cy="11" r="1"></circle><path d="M10 16c1.5 1 3 1 4 0"></path></svg>`,
+            shield: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 text-white"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`,
+            graduate: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 text-white"><path d="M16 16v.5a2 2 0 0 0 4 0v-.5c0-1.1.9-2 2-2H2c1.1 0 2 .9 2 2v.5a2 2 0 0 0 4 0v-.5c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2z"></path><path d="M6 16a2 2 0 1 0 0 4h12a2 2 0 1 0 0-4"></path><path d="M12 16V5.5c0-1-.8-1.5-1.5-1.5h-5C4.8 4 4 4.5 4 5.5V16"></path><path d="M12 16V5.5c0-1 .8-1.5 1.5-1.5h5c.7 0 1.5.5 1.5 1.5V16"></path><path d="M12 16h-.5"></path></svg>`,
+            arrow: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-white"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>`,
+            gamepad: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 text-white"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`,
+            brain: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 text-white"><path d="M15 12c-2.2 0-4-1.8-4-4s1.8-4 4-4c.4 0 .7.1 1 .2C13.2 2.6 12 2 10 2a8 8 0 1 0 5 13.9"></path><path d="M15 12c.4 0 .8.1 1.2.2-2.1 2.3-4.8 3.5-7.2 3.8"></path><path d="M18 10c-.5 0-1-.2-1.4-.6-.4-.4-.6-.9-.6-1.4 0-1.1.9-2 2-2s2 .9 2 2c0 .5-.2 1-.6 1.4-.4.4-.9.6-1.4.6z"></path><path d="M15 12c-2.2 0-4-1.8-4-4s1.8-4 4-4c.4 0 .7.1 1 .2C13.2 2.6 12 2 10 2a8 8 0 1 0 5 13.9"></path></svg>`,
         };
 
         function createHeader() {
             const header = document.getElementById('header-section');
+            header.className = `text-center p-8 rounded-xl drop-shadow-lg transform transition-transform duration-500 hover:scale-[1.01] hover:drop-shadow-2xl ${researchData.header.color}`;
             header.innerHTML = `
                 <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight mb-4 text-white drop-shadow-md">
                     ${researchData.title}
@@ -163,7 +195,7 @@
             researchData.sections.forEach(section => {
                 let contentHtml = '';
                 if (section.type === 'list') {
-                    contentHtml = `<ul class="list-disc list-inside space-y-2 leading-relaxed">
+                    contentHtml = `<ul class="list-disc list-inside space-y-2 leading-relaxed text-gray-200 pl-4">
                         ${section.content.map(item => `
                             <li class="flex items-start">
                                 <span class="mr-2">•</span>
@@ -172,18 +204,64 @@
                         `).join('')}
                     </ul>`;
                 } else if (section.type === 'sub-section') {
-                    contentHtml = `<div class="space-y-6">
+                    contentHtml = `<div class="space-y-6 text-gray-200">
                         ${section.content.map(item => `
-                            <div class="p-4 bg-black bg-opacity-10 rounded-lg border border-white border-opacity-20">
-                                <h3 class="text-xl font-semibold mb-2">${item.heading}</h3>
+                            <div class="p-4 bg-white bg-opacity-10 rounded-lg">
+                                <h3 class="text-xl font-semibold mb-2 text-white">${item.heading}</h3>
                                 <p class="leading-relaxed">${item.text}</p>
                             </div>
                         `).join('')}
                     </div>`;
+                } else if (section.type === 'visual-problem-solution') {
+                    contentHtml = `
+                        <div class="flex flex-col sm:flex-row items-center justify-center gap-8 text-center text-gray-200">
+                            <!-- Problem Side -->
+                            <div class="p-6 rounded-lg bg-red-800 bg-opacity-50 border-2 border-red-500 w-full sm:w-1/2">
+                                <h3 class="text-2xl font-bold mb-2 text-white">문제</h3>
+                                <div class="flex flex-col items-center justify-center space-y-4">
+                                    ${icons.skull}
+                                    <p class="text-sm">치팅 프로그램의 기술적 동작 원리 분석</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Solution Side -->
+                            <div class="p-6 rounded-lg bg-blue-800 bg-opacity-50 border-2 border-blue-500 w-full sm:w-1/2">
+                                <h3 class="text-2xl font-bold mb-2 text-white">해결책</h3>
+                                <div class="flex flex-col items-center justify-center space-y-4">
+                                    ${icons.shield}
+                                    <p class="text-sm">게임 보안 방어 전략 및 안티 치트 시스템 연구</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else if (section.type === 'visual-effect') {
+                    contentHtml = `
+                        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 text-center">
+                            <!-- Student Icon -->
+                            <div class="flex flex-col items-center">
+                                ${icons.graduate}
+                                <span class="mt-2 text-sm text-gray-200">학생</span>
+                            </div>
+                            <!-- Arrow -->
+                            <div class="transform rotate-90 sm:rotate-0">${icons.arrow}</div>
+                            <!-- Skill Icon -->
+                            <div class="flex flex-col items-center">
+                                ${icons.brain}
+                                <span class="mt-2 text-sm text-gray-200">실질적인 역량 강화</span>
+                            </div>
+                            <!-- Arrow -->
+                            <div class="transform rotate-90 sm:rotate-0">${icons.arrow}</div>
+                            <!-- Developer Icon -->
+                            <div class="flex flex-col items-center">
+                                ${icons.gamepad}
+                                <span class="mt-2 text-sm text-gray-200">게임 개발자</span>
+                            </div>
+                        </div>
+                    `;
                 }
 
                 sectionsHtml += `
-                    <div class="mb-8 p-6 ${section.color} rounded-xl shadow-lg text-white transform transition duration-500 hover:scale-[1.01] hover:shadow-2xl">
+                    <div class="p-6 rounded-xl shadow-lg transform transition-transform duration-500 hover:scale-[1.01] hover:shadow-2xl ${section.color}">
                         <h2 class="text-3xl font-bold mb-4 border-b-2 border-white pb-2">${section.title}</h2>
                         ${contentHtml}
                     </div>
@@ -194,16 +272,18 @@
 
         function createReferences() {
             const references = document.getElementById('references-section');
+            references.className = `p-6 rounded-xl shadow-lg text-white transform transition-transform duration-500 hover:scale-[1.01] hover:shadow-2xl ${researchData.references.color}`;
             let refsHtml = `
                 <h2 class="text-3xl font-bold mb-4 border-b-2 border-white pb-2">참고 문헌</h2>
-                <div class="space-y-2">
+                <div class="space-y-4">
             `;
-            researchData.references.forEach(ref => {
+            researchData.references.content.forEach(ref => {
+                let authorText = ref.author ? `<span class="font-semibold">${ref.author}.</span> ` : '';
                 refsHtml += `
                     <a href="${ref.url}" target="_blank" rel="noopener noreferrer" class="block">
-                        <div class="bg-white bg-opacity-20 p-4 rounded-lg mb-4 text-white transition duration-300 hover:bg-opacity-30">
+                        <div class="bg-white bg-opacity-10 p-4 rounded-lg text-white transition duration-300 hover:bg-opacity-20">
                             <p class="text-sm">
-                                <span class="font-semibold">${ref.author}.</span> (${ref.year}). <span class="italic">${ref.title}.</span> <span class="font-medium">${ref.journal}.</span>
+                                ${authorText}(${ref.year}). <span class="italic">${ref.title}.</span> <span class="font-medium">${ref.journal}.</span>
                             </p>
                         </div>
                     </a>
@@ -215,15 +295,16 @@
 
         function createGlossary() {
             const glossary = document.getElementById('glossary-section');
+            glossary.className = `p-6 rounded-xl shadow-lg text-white transform transition-transform duration-500 hover:scale-[1.01] hover:shadow-2xl ${researchData.glossary.color}`;
             let glossaryHtml = `
                 <h2 class="text-3xl font-bold mb-4 border-b-2 border-white pb-2">용어집</h2>
                 <div class="grid md:grid-cols-2 gap-6">
             `;
-            researchData.glossary.forEach(item => {
+            researchData.glossary.content.forEach(item => {
                 glossaryHtml += `
-                    <div class="mb-4 p-4 bg-white bg-opacity-20 rounded-lg text-white">
+                    <div class="p-4 bg-white bg-opacity-10 rounded-lg text-white">
                         <h3 class="text-lg font-bold mb-1">${item.term}</h3>
-                        <p class="leading-relaxed text-sm">${item.definition}</p>
+                        <p class="leading-relaxed text-sm text-gray-200">${item.definition}</p>
                     </div>
                 `;
             });
@@ -233,9 +314,10 @@
 
         function createSummary() {
             const summary = document.getElementById('summary-section');
+            summary.className = `p-6 rounded-xl shadow-lg text-white text-center transform transition-transform duration-500 hover:scale-[1.01] hover:shadow-2xl ${researchData.summary.color}`;
             summary.innerHTML = `
                 <h2 class="text-xl font-bold mb-2">한줄 요약</h2>
-                <p class="leading-relaxed">${researchData.summary}</p>
+                <p class="leading-relaxed text-gray-200">${researchData.summary.content}</p>
             `;
         }
 
