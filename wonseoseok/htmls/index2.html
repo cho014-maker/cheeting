@@ -15,71 +15,77 @@
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
     <div class="container mx-auto p-4 sm:p-8 md:p-12 max-w-4xl">
         
-        <!-- Header Section -->
+        <!-- Header Section (always visible) -->
         <header class="text-center mb-8 sm:mb-12">
             <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-2">수행평가 팀 짜기</h1>
             <p class="text-base sm:text-lg text-gray-600 dark:text-gray-400">흥미도와 성적을 고려해 공정한 팀을 만들어보세요!</p>
         </header>
 
-        <!-- Main Content Area -->
+        <!-- Main Content Area with two "slides" -->
         <main class="space-y-8">
             
-            <!-- Student Input Form -->
-            <section class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
-                <h2 class="text-2xl font-bold mb-6">학생 정보 입력</h2>
+            <!-- Slide 1: Student Input and Configuration -->
+            <div id="inputSection" class="space-y-8 transition-opacity duration-500">
+                <section class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+                    <h2 class="text-2xl font-bold mb-6">학생 정보 입력</h2>
+                    
+                    <!-- 메시지 박스 -->
+                    <div id="messageBox" class="hidden p-3 mb-4 rounded-lg text-sm transition-all duration-300"></div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="col-span-1 lg:col-span-1">
+                            <label for="studentName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">이름</label>
+                            <input type="text" id="studentName" placeholder="김민준" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                        </div>
+                        <div class="col-span-1 lg:col-span-1">
+                            <label for="studentGrade" class="block text-sm font-medium text-gray-700 dark:text-gray-300">성적 (0-100점)</label>
+                            <input type="number" id="studentGrade" placeholder="95" min="0" max="100" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                        </div>
+                        <div class="col-span-1 lg:col-span-1">
+                            <label for="studentInterest" class="block text-sm font-medium text-gray-700 dark:text-gray-300">흥미도</label>
+                            <select id="studentInterest" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                                <option value="높음">높음</option>
+                                <option value="보통">보통</option>
+                                <option value="낮음">낮음</option>
+                            </select>
+                        </div>
+                        <div class="col-span-1 lg:col-span-1 flex items-end">
+                            <button id="addStudentBtn" class="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                                학생 추가
+                            </button>
+                        </div>
+                    </div>
+                </section>
                 
-                <!-- 메시지 박스 -->
-                <div id="messageBox" class="hidden p-3 mb-4 rounded-lg text-sm transition-all duration-300"></div>
+                <section class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+                    <h2 class="text-2xl font-bold mb-4">학생 목록</h2>
+                    <ul id="studentsListUl" class="list-disc list-inside space-y-2 mb-6 text-gray-700 dark:text-gray-300">
+                        <!-- 학생 정보가 여기에 동적으로 추가됩니다 -->
+                    </ul>
+                    <div class="mt-4">
+                        <label for="numTeams" class="block text-sm font-medium text-gray-700 dark:text-gray-300">만들 팀 수</label>
+                        <input type="number" id="numTeams" placeholder="4" min="1" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                    </div>
+                    <button id="createTeamsBtn" class="mt-6 w-full px-4 py-2 bg-green-600 text-white font-medium rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors">
+                        팀 짜기
+                    </button>
+                </section>
+            </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="col-span-1 lg:col-span-1">
-                        <label for="studentName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">이름</label>
-                        <input type="text" id="studentName" placeholder="김민준" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+            <!-- Slide 2: Team Results Display -->
+            <div id="resultsSection" class="space-y-8 hidden transition-opacity duration-500">
+                <section class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+                    <h2 class="text-2xl font-bold mb-4">팀 구성 결과</h2>
+                    <div id="teamsOutput" class="space-y-6">
+                        <!-- 팀 구성 결과가 여기에 동적으로 표시됩니다 -->
                     </div>
-                    <div class="col-span-1 lg:col-span-1">
-                        <label for="studentGrade" class="block text-sm font-medium text-gray-700 dark:text-gray-300">성적 (0-100점)</label>
-                        <input type="number" id="studentGrade" placeholder="95" min="0" max="100" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
-                    </div>
-                    <div class="col-span-1 lg:col-span-1">
-                        <label for="studentInterest" class="block text-sm font-medium text-gray-700 dark:text-gray-300">흥미도</label>
-                        <select id="studentInterest" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
-                            <option value="높음">높음</option>
-                            <option value="보통">보통</option>
-                            <option value="낮음">낮음</option>
-                        </select>
-                    </div>
-                    <div class="col-span-1 lg:col-span-1 flex items-end">
-                        <button id="addStudentBtn" class="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
-                            학생 추가
-                        </button>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Students List and Team Configuration -->
-            <section class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
-                <h2 class="text-2xl font-bold mb-4">학생 목록</h2>
-                <ul id="studentsListUl" class="list-disc list-inside space-y-2 mb-6 text-gray-700 dark:text-gray-300">
-                    <!-- 학생 정보가 여기에 동적으로 추가됩니다 -->
-                </ul>
-                <div class="mt-4">
-                    <label for="numTeams" class="block text-sm font-medium text-gray-700 dark:text-gray-300">만들 팀 수</label>
-                    <input type="number" id="numTeams" placeholder="4" min="1" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
-                </div>
-                <button id="createTeamsBtn" class="mt-6 w-full px-4 py-2 bg-green-600 text-white font-medium rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors">
-                    팀 짜기
-                </button>
-            </section>
+                    <button id="goBackBtn" class="mt-8 w-full px-4 py-2 bg-gray-500 text-white font-medium rounded-lg shadow-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors">
+                        뒤로 가기
+                    </button>
+                </section>
+            </div>
 
-            <!-- Team Results Display -->
-            <section class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
-                <h2 class="text-2xl font-bold mb-4">팀 구성 결과</h2>
-                <div id="teamsOutput" class="space-y-6">
-                    <!-- 팀 구성 결과가 여기에 동적으로 표시됩니다 -->
-                </div>
-            </section>
-
-            <!-- Original Python Code Display -->
+            <!-- Original Python Code Display (always visible) -->
             <section class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
                 <h2 class="text-2xl font-bold flex justify-between items-center mb-4">
                     <span>참고: 원본 파이썬 코드</span>
@@ -200,6 +206,12 @@ for i, team in enumerate(teams):
         const createTeamsBtn = document.getElementById('createTeamsBtn');
         const teamsOutput = document.getElementById('teamsOutput');
         const messageBox = document.getElementById('messageBox');
+        
+        // 슬라이드 섹션들을 가져옵니다.
+        const inputSection = document.getElementById('inputSection');
+        const resultsSection = document.getElementById('resultsSection');
+        const goBackBtn = document.getElementById('goBackBtn');
+
 
         // 페이지 로드 시 초기 팀 수를 설정합니다.
         numTeamsInput.value = 4;
@@ -272,7 +284,7 @@ for i, team in enumerate(teams):
             studentNameInput.focus();
         }
 
-        // 팀 짜기 버튼 이벤트 리스너
+        // 팀 짜기 버튼 이벤트 리스너 (화면 전환 기능 추가)
         createTeamsBtn.addEventListener('click', () => {
             hideMessage();
             const numTeams = parseInt(numTeamsInput.value);
@@ -289,6 +301,16 @@ for i, team in enumerate(teams):
 
             const teams = createTeamsByInterestAndGrade(students, numTeams);
             displayTeams(teams);
+            
+            // 결과 화면으로 전환
+            inputSection.classList.add('hidden');
+            resultsSection.classList.remove('hidden');
+        });
+
+        // 뒤로 가기 버튼 이벤트 리스너 (화면 전환 기능 추가)
+        goBackBtn.addEventListener('click', () => {
+            resultsSection.classList.add('hidden');
+            inputSection.classList.remove('hidden');
         });
 
         // 학생들을 성적순으로 정렬한 뒤 팀에 균등하게 분배하는 함수
