@@ -27,6 +27,10 @@
             <!-- Student Input Form -->
             <section class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
                 <h2 class="text-2xl font-bold mb-6">학생 정보 입력</h2>
+                
+                <!-- 메시지 박스 -->
+                <div id="messageBox" class="hidden p-3 mb-4 rounded-lg text-sm transition-all duration-300"></div>
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="col-span-1 lg:col-span-1">
                         <label for="studentName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">이름</label>
@@ -100,19 +104,16 @@ def create_teams_by_interest_and_grade(students, num_teams):
     Returns:
         list: 각 팀의 구성원이 담긴 리스트의 리스트.
     """
-    high_interest = sorted([s for s in students if s['interest'] == '높음'], key=lambda x: x['grade'], reverse=True)
-    medium_interest = sorted([s for s in students if s['interest'] == '보통'], key=lambda x: x['grade'], reverse=True)
-    low_interest = sorted([s for s in students if s['interest'] == '낮음'], key=lambda x: x['grade'], reverse=True)
+    # 모든 학생을 성적순으로 정렬합니다.
+    sorted_students = sorted(students, key=lambda x: x['grade'], reverse=True)
     
     teams = [[] for _ in range(num_teams)]
     
-    student_groups = [high_interest, medium_interest, low_interest]
-    
-    for group in student_groups:
-        random.shuffle(group)
-        for i, student in enumerate(group):
-            team_index = i % num_teams
-            teams[team_index].append(student)
+    # 정렬된 학생들을 팀에 순서대로 배정합니다.
+    # 이렇게 하면 팀별 인원 수가 최대한 균등해지고, 평균 성적도 비슷해집니다.
+    for i, student in enumerate(sorted_students):
+        team_index = i % num_teams
+        teams[team_index].append(student)
             
     return teams
 
@@ -155,18 +156,36 @@ for i, team in enumerate(teams):
         // 파이썬 코드를 JavaScript로 변환한 로직
         // 초기 학생 데이터 (성적과 흥미도를 고려해 미리 입력)
         const initialStudents = [
-            { name: '김민준', grade: 95, interest: '높음' },
-            { name: '박서준', grade: 88, interest: '보통' },
-            { name: '이하윤', grade: 76, interest: '낮음' },
-            { name: '최도현', grade: 92, interest: '높음' },
-            { name: '정유진', grade: 85, interest: '보통' },
-            { name: '한지우', grade: 72, interest: '낮음' },
-            { name: '강민서', grade: 98, interest: '높음' },
-            { name: '서은서', grade: 80, interest: '보통' },
-            { name: '고준영', 'grade': 65, interest: '낮음' },
-            { name: '송예준', grade: 89, interest: '높음' },
-            { name: '오채은', grade: 78, interest: '보통' },
-            { name: '윤건우', grade: 68, interest: '낮음' },
+            { name: '김민준', grade: 92, interest: '높음' },
+            { name: '박서준', grade: 85, interest: '보통' },
+            { name: '이하윤', grade: 78, interest: '낮음' },
+            { name: '최도현', grade: 98, interest: '높음' },
+            { name: '정유진', grade: 75, interest: '보통' },
+            { name: '한지우', grade: 65, interest: '낮음' },
+            { name: '강민서', grade: 89, interest: '높음' },
+            { name: '서은서', grade: 81, interest: '보통' },
+            { name: '고준영', grade: 71, interest: '낮음' },
+            { name: '송예준', grade: 95, interest: '높음' },
+            { name: '오채은', grade: 68, interest: '보통' },
+            { name: '윤건우', grade: 84, interest: '보통' },
+            { name: '이지훈', grade: 93, interest: '높음' },
+            { name: '김하은', grade: 77, interest: '낮음' },
+            { name: '박도윤', grade: 55, interest: '낮음' },
+            { name: '정서연', grade: 99, interest: '높음' },
+            { name: '이서준', grade: 88, interest: '보통' },
+            { name: '김서진', grade: 62, interest: '낮음' },
+            { name: '강채민', grade: 79, interest: '보통' },
+            { name: '최준혁', grade: 91, interest: '높음' },
+            { name: '남규리', grade: 83, interest: '보통' },
+            { name: '조민지', grade: 74, interest: '낮음' },
+            { name: '황지호', grade: 96, interest: '높음' },
+            { name: '문예원', grade: 67, interest: '보통' },
+            { name: '신현우', grade: 80, interest: '보통' },
+            { name: '오윤아', grade: 59, interest: '낮음' },
+            { name: '유승우', grade: 90, interest: '높음' },
+            { name: '임다인', grade: 86, interest: '보통' },
+            { name: '장하은', grade: 73, interest: '낮음' },
+            { name: '홍성민', grade: 94, interest: '높음' },
         ];
         
         // `students` 배열을 초기 학생 데이터로 채웁니다.
@@ -180,19 +199,36 @@ for i, team in enumerate(teams):
         const numTeamsInput = document.getElementById('numTeams');
         const createTeamsBtn = document.getElementById('createTeamsBtn');
         const teamsOutput = document.getElementById('teamsOutput');
+        const messageBox = document.getElementById('messageBox');
 
         // 페이지 로드 시 초기 팀 수를 설정합니다.
         numTeamsInput.value = 4;
         
+        // 메시지 표시 함수
+        function showMessage(message, type = 'error') {
+            messageBox.textContent = message;
+            if (type === 'error') {
+                messageBox.className = 'p-3 mb-4 rounded-lg text-sm transition-all duration-300 bg-red-100 text-red-700';
+            } else {
+                messageBox.className = 'p-3 mb-4 rounded-lg text-sm transition-all duration-300 bg-green-100 text-green-700';
+            }
+            messageBox.classList.remove('hidden');
+        }
+
+        // 메시지 숨기기 함수
+        function hideMessage() {
+            messageBox.classList.add('hidden');
+        }
+
         // 학생 추가 버튼 이벤트 리스너
         addStudentBtn.addEventListener('click', () => {
+            hideMessage();
             const name = studentNameInput.value.trim();
             const grade = parseInt(studentGradeInput.value);
             const interest = studentInterestSelect.value;
 
             if (!name || isNaN(grade) || grade < 0 || grade > 100) {
-                // 경고창 대신 사용자 친화적인 메시지를 표시합니다
-                alert("이름과 올바른 성적(0-100)을 입력하세요.");
+                showMessage("이름과 올바른 성적(0-100)을 입력하세요.");
                 return;
             }
 
@@ -238,15 +274,16 @@ for i, team in enumerate(teams):
 
         // 팀 짜기 버튼 이벤트 리스너
         createTeamsBtn.addEventListener('click', () => {
+            hideMessage();
             const numTeams = parseInt(numTeamsInput.value);
 
             if (isNaN(numTeams) || numTeams < 1) {
-                alert("만들 팀 수를 1 이상으로 입력해주세요.");
+                showMessage("만들 팀 수를 1 이상으로 입력해주세요.");
                 return;
             }
 
             if (numTeams > students.length) {
-                alert("팀 수가 학생 수보다 많을 수 없습니다.");
+                showMessage("팀 수가 학생 수보다 많을 수 없습니다.");
                 return;
             }
 
@@ -254,24 +291,19 @@ for i, team in enumerate(teams):
             displayTeams(teams);
         });
 
-        // 파이썬 로직을 JavaScript로 변환한 핵심 함수
+        // 학생들을 성적순으로 정렬한 뒤 팀에 균등하게 분배하는 함수
         function createTeamsByInterestAndGrade(students, numTeams) {
-            const highInterest = students.filter(s => s.interest === '높음').sort((a, b) => b.grade - a.grade);
-            const mediumInterest = students.filter(s => s.interest === '보통').sort((a, b) => b.grade - a.grade);
-            const lowInterest = students.filter(s => s.interest === '낮음').sort((a, b) => b.grade - a.grade);
-
+            // 모든 학생을 성적순으로 내림차순 정렬합니다.
+            const sortedStudents = students.sort((a, b) => b.grade - a.grade);
+            
+            // 각 팀별로 학생을 담을 배열을 생성합니다.
             const teams = Array.from({ length: numTeams }, () => []);
 
-            const studentGroups = [highInterest, mediumInterest, lowInterest];
-
-            studentGroups.forEach(group => {
-                // `random.shuffle()` 대신 JavaScript의 정렬 메서드를 사용하여 무작위로 섞습니다.
-                group.sort(() => Math.random() - 0.5);
-
-                group.forEach((student, i) => {
-                    const teamIndex = i % numTeams;
-                    teams[teamIndex].push(student);
-                });
+            // 성적순으로 정렬된 학생들을 팀에 순서대로 배분합니다.
+            // 이 지그재그 방식이 각 팀의 평균 성적과 흥미도를 가장 균등하게 만듭니다.
+            sortedStudents.forEach((student, i) => {
+                const teamIndex = i % numTeams;
+                teams[teamIndex].push(student);
             });
 
             return teams;
@@ -286,15 +318,9 @@ for i, team in enumerate(teams):
             }
             
             const interestMap = {
-                '높음': 3,
-                '보통': 2,
+                '높음': 5,
+                '보통': 3,
                 '낮음': 1
-            };
-
-            const reverseInterestMap = {
-                '3': '높음',
-                '2': '보통',
-                '1': '낮음'
             };
 
             teams.forEach((team, index) => {
@@ -302,16 +328,20 @@ for i, team in enumerate(teams):
                 const totalGrade = team.reduce((sum, student) => sum + student.grade, 0);
                 const avgGrade = team.length > 0 ? (totalGrade / team.length).toFixed(1) : 0;
                 
-                // 팀의 평균 흥미도 계산 (수치화 후 다시 문자열로 변환)
+                // 팀의 평균 흥미도 점수와 수준 계산
                 const totalInterestScore = team.reduce((sum, student) => sum + interestMap[student.interest], 0);
-                const avgInterestScore = team.length > 0 ? totalInterestScore / team.length : 0;
-                let avgInterest = '';
-                if (avgInterestScore >= 2.5) {
-                    avgInterest = '높음';
+                const avgInterestScore = team.length > 0 ? (totalInterestScore / team.length).toFixed(1) : 0;
+                let avgInterestLevel = '';
+                if (avgInterestScore >= 4.5) {
+                    avgInterestLevel = '높음';
+                } else if (avgInterestScore >= 3.5) {
+                    avgInterestLevel = '약간 높음';
+                } else if (avgInterestScore >= 2.5) {
+                    avgInterestLevel = '보통';
                 } else if (avgInterestScore >= 1.5) {
-                    avgInterest = '보통';
+                    avgInterestLevel = '약간 낮음';
                 } else {
-                    avgInterest = '낮음';
+                    avgInterestLevel = '낮음';
                 }
 
                 const teamBox = document.createElement('div');
@@ -319,14 +349,14 @@ for i, team in enumerate(teams):
                 
                 const teamTitle = document.createElement('h3');
                 teamTitle.className = 'text-xl font-semibold mb-3 border-b border-gray-300 dark:border-gray-500 pb-2 text-blue-600 dark:text-blue-400';
-                teamTitle.textContent = `팀 ${index + 1}`;
+                teamTitle.textContent = `팀 ${index + 1} (${team.length}명)`;
                 teamBox.appendChild(teamTitle);
 
                 const teamStats = document.createElement('p');
                 teamStats.className = 'text-sm text-gray-700 dark:text-gray-300 mb-4';
-                teamStats.innerHTML = `<strong>평균 성적:</strong> ${avgGrade}점 | <strong>평균 흥미도:</strong> ${avgInterest}`;
+                teamStats.innerHTML = `<strong>평균 성적:</strong> ${avgGrade}점 | <strong>평균 흥미도:</strong> ${avgInterestScore}점 (${avgInterestLevel} 수준)`;
                 teamBox.appendChild(teamStats);
-                
+
                 const ul = document.createElement('ul');
                 ul.className = 'list-none space-y-2';
                 team.forEach(student => {
