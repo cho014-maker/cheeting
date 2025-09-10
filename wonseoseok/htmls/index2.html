@@ -1,4 +1,92 @@
-import random
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수행평가 팀 짜기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+    <div class="container mx-auto p-4 sm:p-8 md:p-12 max-w-4xl">
+        
+        <!-- Header Section -->
+        <header class="text-center mb-8 sm:mb-12">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-2">수행평가 팀 짜기</h1>
+            <p class="text-base sm:text-lg text-gray-600 dark:text-gray-400">흥미도와 성적을 고려해 공정한 팀을 만들어보세요!</p>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="space-y-8">
+            
+            <!-- Student Input Form -->
+            <section class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+                <h2 class="text-2xl font-bold mb-6">학생 정보 입력</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="col-span-1 lg:col-span-1">
+                        <label for="studentName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">이름</label>
+                        <input type="text" id="studentName" placeholder="김민준" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                    </div>
+                    <div class="col-span-1 lg:col-span-1">
+                        <label for="studentGrade" class="block text-sm font-medium text-gray-700 dark:text-gray-300">성적 (0-100점)</label>
+                        <input type="number" id="studentGrade" placeholder="95" min="0" max="100" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                    </div>
+                    <div class="col-span-1 lg:col-span-1">
+                        <label for="studentInterest" class="block text-sm font-medium text-gray-700 dark:text-gray-300">흥미도</label>
+                        <select id="studentInterest" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                            <option value="높음">높음</option>
+                            <option value="보통">보통</option>
+                            <option value="낮음">낮음</option>
+                        </select>
+                    </div>
+                    <div class="col-span-1 lg:col-span-1 flex items-end">
+                        <button id="addStudentBtn" class="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                            학생 추가
+                        </button>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Students List and Team Configuration -->
+            <section class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+                <h2 class="text-2xl font-bold mb-4">학생 목록</h2>
+                <ul id="studentsListUl" class="list-disc list-inside space-y-2 mb-6 text-gray-700 dark:text-gray-300">
+                    <!-- 학생 정보가 여기에 동적으로 추가됩니다 -->
+                </ul>
+                <div class="mt-4">
+                    <label for="numTeams" class="block text-sm font-medium text-gray-700 dark:text-gray-300">만들 팀 수</label>
+                    <input type="number" id="numTeams" placeholder="4" min="1" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <button id="createTeamsBtn" class="mt-6 w-full px-4 py-2 bg-green-600 text-white font-medium rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors">
+                    팀 짜기
+                </button>
+            </section>
+
+            <!-- Team Results Display -->
+            <section class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+                <h2 class="text-2xl font-bold mb-4">팀 구성 결과</h2>
+                <div id="teamsOutput" class="space-y-6">
+                    <!-- 팀 구성 결과가 여기에 동적으로 표시됩니다 -->
+                </div>
+            </section>
+
+            <!-- Original Python Code Display -->
+            <section class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+                <h2 class="text-2xl font-bold flex justify-between items-center mb-4">
+                    <span>참고: 원본 파이썬 코드</span>
+                    <button id="toggleCodeBtn" class="text-gray-500 dark:text-gray-400 focus:outline-none transition-transform duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </button>
+                </h2>
+                <div id="pythonCodeContainer" class="hidden">
+                    <pre class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg overflow-x-auto text-sm"><code>import random
 
 def create_teams_by_interest_and_grade(students, num_teams):
     """
@@ -6,7 +94,7 @@ def create_teams_by_interest_and_grade(students, num_teams):
     
     Args:
         students (list): 각 학생의 이름, 성적, 흥미도 정보가 담긴 딕셔너리 리스트.
-                         예: [{'name': '김민준', 'grade': 95, 'interest': '높음'}]
+                        예: [{'name': '김민준', 'grade': 95, 'interest': '높음'}]
         num_teams (int): 만들 팀의 수.
         
     Returns:
@@ -55,4 +143,186 @@ teams = create_teams_by_interest_and_grade(all_students, num_teams)
 print("\n--- 최종 팀 구성 결과 ---")
 for i, team in enumerate(teams):
     team_members_info = [f"{s['name']} (성적: {s['grade']}, 흥미도: {s['interest']})" for s in team]
-    print(f"팀 {i+1}: {', '.join(team_members_info)}")
+    print(f"팀 {i+1}: {', '.join(team_members_info)}")</code></pre>
+                </div>
+            </section>
+            
+        </main>
+        
+    </div>
+
+    <script>
+        // 파이썬 코드를 JavaScript로 변환한 로직
+        // 초기 학생 데이터 (성적과 흥미도를 고려해 미리 입력)
+        const initialStudents = [
+            { name: '김민준', grade: 95, interest: '높음' },
+            { name: '박서준', grade: 88, interest: '보통' },
+            { name: '이하윤', grade: 76, interest: '낮음' },
+            { name: '최도현', grade: 92, interest: '높음' },
+            { name: '정유진', grade: 85, interest: '보통' },
+            { name: '한지우', grade: 72, interest: '낮음' },
+            { name: '강민서', grade: 98, interest: '높음' },
+            { name: '서은서', grade: 80, interest: '보통' },
+            { name: '고준영', 'grade': 65, interest: '낮음' },
+            { name: '송예준', grade: 89, interest: '높음' },
+            { name: '오채은', grade: 78, interest: '보통' },
+            { name: '윤건우', grade: 68, interest: '낮음' },
+        ];
+        
+        // `students` 배열을 초기 학생 데이터로 채웁니다.
+        let students = [...initialStudents];
+
+        const studentNameInput = document.getElementById('studentName');
+        const studentGradeInput = document.getElementById('studentGrade');
+        const studentInterestSelect = document.getElementById('studentInterest');
+        const addStudentBtn = document.getElementById('addStudentBtn');
+        const studentsListUl = document.getElementById('studentsListUl');
+        const numTeamsInput = document.getElementById('numTeams');
+        const createTeamsBtn = document.getElementById('createTeamsBtn');
+        const teamsOutput = document.getElementById('teamsOutput');
+
+        // 페이지 로드 시 초기 팀 수를 설정합니다.
+        numTeamsInput.value = 4;
+        
+        // 학생 추가 버튼 이벤트 리스너
+        addStudentBtn.addEventListener('click', () => {
+            const name = studentNameInput.value.trim();
+            const grade = parseInt(studentGradeInput.value);
+            const interest = studentInterestSelect.value;
+
+            if (!name || isNaN(grade) || grade < 0 || grade > 100) {
+                // 경고창 대신 사용자 친화적인 메시지를 표시합니다
+                alert("이름과 올바른 성적(0-100)을 입력하세요.");
+                return;
+            }
+
+            students.push({ name, grade, interest });
+            updateStudentsList();
+            clearInputs();
+        });
+
+        // 학생 목록 업데이트 함수
+        function updateStudentsList() {
+            studentsListUl.innerHTML = '';
+            students.forEach((student, index) => {
+                const li = document.createElement('li');
+                li.className = 'bg-gray-100 dark:bg-gray-700 p-2 rounded-lg flex items-center justify-between';
+                li.innerHTML = `
+                    <span class="text-sm sm:text-base">${student.name} (성적: ${student.grade}, 흥미도: ${student.interest})</span>
+                    <button data-index="${index}" class="remove-btn text-red-500 hover:text-red-700 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 112 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                `;
+                studentsListUl.appendChild(li);
+            });
+            
+            // 삭제 버튼 이벤트 리스너 추가
+            document.querySelectorAll('.remove-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const index = e.currentTarget.dataset.index;
+                    students.splice(index, 1);
+                    updateStudentsList();
+                });
+            });
+        }
+
+        // 입력 필드 초기화 함수
+        function clearInputs() {
+            studentNameInput.value = '';
+            studentGradeInput.value = '';
+            studentInterestSelect.value = '높음';
+            studentNameInput.focus();
+        }
+
+        // 팀 짜기 버튼 이벤트 리스너
+        createTeamsBtn.addEventListener('click', () => {
+            const numTeams = parseInt(numTeamsInput.value);
+
+            if (isNaN(numTeams) || numTeams < 1) {
+                alert("만들 팀 수를 1 이상으로 입력해주세요.");
+                return;
+            }
+
+            if (numTeams > students.length) {
+                alert("팀 수가 학생 수보다 많을 수 없습니다.");
+                return;
+            }
+
+            const teams = createTeamsByInterestAndGrade(students, numTeams);
+            displayTeams(teams);
+        });
+
+        // 파이썬 로직을 JavaScript로 변환한 핵심 함수
+        function createTeamsByInterestAndGrade(students, numTeams) {
+            const highInterest = students.filter(s => s.interest === '높음').sort((a, b) => b.grade - a.grade);
+            const mediumInterest = students.filter(s => s.interest === '보통').sort((a, b) => b.grade - a.grade);
+            const lowInterest = students.filter(s => s.interest === '낮음').sort((a, b) => b.grade - a.grade);
+
+            const teams = Array.from({ length: numTeams }, () => []);
+
+            const studentGroups = [highInterest, mediumInterest, lowInterest];
+
+            studentGroups.forEach(group => {
+                // `random.shuffle()` 대신 JavaScript의 정렬 메서드를 사용하여 무작위로 섞습니다.
+                group.sort(() => Math.random() - 0.5);
+
+                group.forEach((student, i) => {
+                    const teamIndex = i % numTeams;
+                    teams[teamIndex].push(student);
+                });
+            });
+
+            return teams;
+        }
+
+        // 팀 구성 결과를 화면에 표시하는 함수
+        function displayTeams(teams) {
+            teamsOutput.innerHTML = '';
+            if (teams.length === 0) {
+                teamsOutput.innerHTML = `<p class="text-gray-500 dark:text-gray-400">팀 구성 결과가 없습니다.</p>`;
+                return;
+            }
+
+            teams.forEach((team, index) => {
+                const teamBox = document.createElement('div');
+                teamBox.className = 'bg-gray-50 dark:bg-gray-700 p-6 rounded-xl border border-gray-200 dark:border-gray-600 shadow-md';
+                
+                const teamTitle = document.createElement('h3');
+                teamTitle.className = 'text-xl font-semibold mb-3 border-b border-gray-300 dark:border-gray-500 pb-2 text-blue-600 dark:text-blue-400';
+                teamTitle.textContent = `팀 ${index + 1}`;
+                teamBox.appendChild(teamTitle);
+                
+                const ul = document.createElement('ul');
+                ul.className = 'list-none space-y-2';
+                team.forEach(student => {
+                    const li = document.createElement('li');
+                    li.className = 'flex items-center text-sm sm:text-base';
+                    li.innerHTML = `
+                        <span class="inline-block w-2 h-2 rounded-full bg-blue-500 mr-2"></span>
+                        ${student.name} (성적: ${student.grade}, 흥미도: ${student.interest})
+                    `;
+                    ul.appendChild(li);
+                });
+                teamBox.appendChild(ul);
+                teamsOutput.appendChild(teamBox);
+            });
+        }
+        
+        // 페이지 로드 시 학생 목록을 표시합니다.
+        window.onload = function() {
+            updateStudentsList();
+        };
+
+        // 코드 표시/숨기기 토글 기능
+        const toggleCodeBtn = document.getElementById('toggleCodeBtn');
+        const pythonCodeContainer = document.getElementById('pythonCodeContainer');
+
+        toggleCodeBtn.addEventListener('click', () => {
+            pythonCodeContainer.classList.toggle('hidden');
+            toggleCodeBtn.classList.toggle('rotate-180');
+        });
+    </script>
+</body>
+</html>
