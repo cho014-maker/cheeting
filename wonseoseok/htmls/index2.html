@@ -1,0 +1,58 @@
+import random
+
+def create_teams_by_interest_and_grade(students, num_teams):
+    """
+    흥미도와 성적을 고려하여 학생들을 균형 있게 팀으로 나누는 함수.
+    
+    Args:
+        students (list): 각 학생의 이름, 성적, 흥미도 정보가 담긴 딕셔너리 리스트.
+                         예: [{'name': '김민준', 'grade': 95, 'interest': '높음'}]
+        num_teams (int): 만들 팀의 수.
+        
+    Returns:
+        list: 각 팀의 구성원이 담긴 리스트의 리스트.
+    """
+    high_interest = sorted([s for s in students if s['interest'] == '높음'], key=lambda x: x['grade'], reverse=True)
+    medium_interest = sorted([s for s in students if s['interest'] == '보통'], key=lambda x: x['grade'], reverse=True)
+    low_interest = sorted([s for s in students if s['interest'] == '낮음'], key=lambda x: x['grade'], reverse=True)
+    
+    teams = [[] for _ in range(num_teams)]
+    
+    student_groups = [high_interest, medium_interest, low_interest]
+    
+    for group in student_groups:
+        random.shuffle(group)
+        for i, student in enumerate(group):
+            team_index = i % num_teams
+            teams[team_index].append(student)
+            
+    return teams
+
+# --- 사용 예시 ---
+# 1. 팀원 명단 및 정보 입력
+all_students = [
+    {'name': '김민준', 'grade': 95, 'interest': '높음'},
+    {'name': '박서준', 'grade': 88, 'interest': '보통'},
+    {'name': '이하윤', 'grade': 76, 'interest': '낮음'},
+    {'name': '최도현', 'grade': 92, 'interest': '높음'},
+    {'name': '정유진', 'grade': 85, 'interest': '보통'},
+    {'name': '한지우', 'grade': 72, 'interest': '낮음'},
+    {'name': '강민서', 'grade': 98, 'interest': '높음'},
+    {'name': '서은서', 'grade': 80, 'interest': '보통'},
+    {'name': '고준영', 'grade': 65, 'interest': '낮음'},
+    {'name': '송예준', 'grade': 89, 'interest': '높음'},
+    {'name': '오채은', 'grade': 78, 'interest': '보통'},
+    {'name': '윤건우', 'grade': 68, 'interest': '낮음'},
+]
+
+# 2. 만들 팀의 수 입력
+num_teams = 4
+
+# 3. 함수 실행 및 결과 출력
+teams = create_teams_by_interest_and_grade(all_students, num_teams)
+
+# 아래 for 루프가 팀 구성 결과를 출력하는 부분입니다.
+print("\n--- 최종 팀 구성 결과 ---")
+for i, team in enumerate(teams):
+    team_members_info = [f"{s['name']} (성적: {s['grade']}, 흥미도: {s['interest']})" for s in team]
+    print(f"팀 {i+1}: {', '.join(team_members_info)}")
