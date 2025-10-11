@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>블록체인</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        .block-card {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            transition: transform 0.3s ease-in-out;
+            animation: fadeIn 0.5s ease-in-out;
+            position: relative;
+        }
+        .block-card:hover {
+            transform: translateY(-5px);
+        }
+        .invalid-block {
+            background-color: #fca5a5; /* Red background for invalid blocks */
+        }
+        .chain-link {
+            width: 100%;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin: 1rem 0;
+        }
+        .chain-link::before {
+            content: '';
+            position: absolute;
+            width: 4px;
+            height: 100%;
+            background-color: #9ca3af;
+            border-radius: 2px;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(1.2); }
+        }
+        .remove-btn-icon {
+            width: 20px;
+            height: 20px;
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+    <div class="max-w-4xl mx-auto space-y-8">
+        <header class="text-center">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">블록체인 시뮬레이션</h1>
+            <p class="text-lg text-gray-500">정보를 입력하고, 시각적으로 연결되는 블록을 확인해 보세요.</p>
+        </header>
+
+        <!-- 블록 추가 입력 폼 -->
+        <div class="bg-white rounded-xl shadow-lg p-6 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
+            <input type="text" id="dataInput" placeholder="블록에 넣을 정보 입력 (예: '거래 #1')" class="flex-1 w-full md:w-auto px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+            <button id="addButton" class="w-full md:w-auto px-6 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-md hover:bg-blue-700 transition-all">블록 추가</button>
+        </div>
+
+        <!-- 메시지 및 유효성 검사 버튼 -->
+        <div class="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <div id="message" class="text-center text-sm font-medium text-gray-600"></div>
+            <button id="validateButton" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-md shadow-md hover:bg-green-700 transition-all">블록체인 유효성 검사</button>
+        </div>
+
+        <!-- 블록체인 표시 영역 -->
+        <div id="blockchainContainer" class="space-y-6">
+            <!-- 블록들이 여기에 동적으로 추가됩니다 -->
+        </div>
+    </div>
+
+    <script>
+        // JavaScript에서 구조체와 유사한 역할을 하는 Class를 사용합니다.
+        class Block {
+            constructor(index, timestamp, data, previousHash = '') {
+                this.index = index;
+                this.timestamp = timestamp;
+                this.data = data;
+                this.previousHash = previousHash;
+                this.hash = this.calculateHash();
+                this.nonce = 0; // 채굴을 위한 임의의 값
+            }
+
+            // SHA256 알고리즘을 사용하여 해시를 계산합니다.
+            calculateHash() {
+                return CryptoJS.SHA256(this.index + this.previousHash + this.timestamp + JSON.stringify(this.data) + this.nonce).toString();
+            }
+
+            // 확률 기반으로 블록을 채굴합니다.
+            // 난이도(difficulty)가 낮을수록 빨리 채굴됩니다.
+            mineBlock(difficulty) {
+                while (this.hash.substring(0, difficulty) !== Array(difficulty + 1).join("0")) {
+                    this.nonce++;
+                    this.hash = this.calculateHash();
+                }
+                console.log("블록 채굴 완료: " + this.hash);
+            }
+        }
+
+        class Blockchain {
+            constructor() {
+                this.chain = [this.createGenesisBlock()];
+                this.difficulty = 4; // 채굴 난이도 설정 (앞의 0의 개수)
+            }
+
+            // 첫 번째 블록(제네시스 블록)을 생성합니다.
+            createGenesisBlock() {
+                return new Block(0, new Date().toISOString(), "Genesis Block", "0");
+            }
+
+            getLatestBlock() {
+                return this.chain[this.chain.length - 1];
+            }
+
+            addBlock(newBlock) {
+                newBlock.previousHash = this.getLatestBlock().hash;
+                // 새로운 블록을 추가하기 전에 채굴 과정을 거칩니다.
+                newBlock.mineBlock(this.difficulty);
+                this.chain.push(newBlock);
+            }
+            
+            removeBlock(index) {
+                if (index > 0 && index < this.chain.length) {
+                    // 지정된 인덱스부터 그 이후의 모든 블록을 제거합니다.
+                    this.chain.splice(index);
+                }
+            }
+
+            // 블록체인의 모든 블록의 유효성을 검사합니다.
+            isChainValid() {
+                for (let i = 1; i < this.chain.length; i++) {
+                    const currentBlock = this.chain[i];
+                    const previousBlock = this.chain[i - 1];
+
+                    // 1. 현재 블록의 해시가 올바른지 확인
+                    if (currentBlock.hash !== currentBlock.calculateHash()) {
+                        return false;
+                    }
+
+                    // 2. 현재 블록의 이전 해시가 이전 블록의 해시와 일치하는지 확인
+                    if (currentBlock.previousHash !== previousBlock.hash) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+
+        // 전역 변수 설정
+        const myBlockchain = new Blockchain();
+        const container = document.getElementById('blockchainContainer');
+        const dataInput = document.getElementById('dataInput');
+        const addButton = document.getElementById('addButton');
+        const validateButton = document.getElementById('validateButton');
+        const messageDiv = document.getElementById('message');
+        
+        // 예시 데이터
+        const exampleData = [
+            "비트코인 거래 1: 1BTC 송금",
+            "이더리움 스마트 컨트랙트 실행",
+            "NFT 아트워크 소유권 이전",
+            "거래소 코인 출금",
+            "탈중앙화 금융(DeFi) 대출 실행"
+        ];
+        let exampleIndex = 0;
+
+        // 블록체인 렌더링 함수
+        function renderBlockchain() {
+            container.innerHTML = '';
+            myBlockchain.chain.forEach((block, index) => {
+                const blockDiv = document.createElement('div');
+                
+                // 유효성 검사
+                let isValid = true;
+                if (index > 0) {
+                    const previousBlock = myBlockchain.chain[index - 1];
+                    if (block.previousHash !== previousBlock.hash) {
+                        isValid = false;
+                    }
+                }
+                
+                blockDiv.className = `block-card space-y-2 ${isValid ? '' : 'invalid-block'}`;
+                
+                blockDiv.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-400">#${block.index}</span>
+                        ${index > 0 ? `<button class="text-red-500 font-semibold text-sm hover:text-red-700 transition-all remove-btn" data-index="${index}">
+                            <svg class="remove-btn-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 11-2 0v6a1 1 0 112 0V8z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>` : ''}
+                    </div>
+                    <div class="font-bold text-xl text-gray-800 break-words">데이터: ${block.data}</div>
+                    <div class="text-xs text-gray-500 break-words">
+                        <strong>이전 해시:</strong> <br>${block.previousHash}
+                    </div>
+                    <div class="text-xs text-gray-500 break-words">
+                        <strong>현재 해시:</strong> <br>${block.hash}
+                    </div>
+                `;
+                container.appendChild(blockDiv);
+
+                // 블록 연결선 추가 (마지막 블록 제외)
+                if (index < myBlockchain.chain.length - 1) {
+                    const linkDiv = document.createElement('div');
+                    linkDiv.className = 'chain-link';
+                    container.appendChild(linkDiv);
+                }
+            });
+            
+            // 삭제 버튼 이벤트 리스너 추가
+            document.querySelectorAll('.remove-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const indexToRemove = parseInt(e.currentTarget.dataset.index);
+                    myBlockchain.removeBlock(indexToRemove);
+                    renderBlockchain();
+                    messageDiv.textContent = `#${indexToRemove} 블록과 그 이후의 모든 블록이 삭제되었습니다.`;
+                    messageDiv.className = "text-center text-red-500 font-medium";
+                });
+            });
+        }
+
+        // 블록 추가 함수
+        function addNewBlock(data) {
+            if (data.trim() === "") {
+                messageDiv.textContent = "정보를 입력해주세요!";
+                messageDiv.className = "text-center text-red-500 font-medium";
+                return;
+            }
+
+            // 채굴 중 메시지 표시
+            messageDiv.innerHTML = '<div class="flex items-center justify-center space-x-2"><div class="loading-spinner"></div><span>블록 채굴 중...</span></div>';
+            messageDiv.className = "text-center text-blue-600 font-medium";
+            dataInput.disabled = true;
+            addButton.disabled = true;
+
+            setTimeout(() => {
+                const newBlock = new Block(myBlockchain.chain.length, new Date().toISOString(), data);
+                myBlockchain.addBlock(newBlock);
+                renderBlockchain();
+                dataInput.value = '';
+                messageDiv.textContent = "새로운 블록이 채굴되어 추가되었습니다!";
+                messageDiv.className = "text-center text-green-500 font-medium";
+                dataInput.disabled = false;
+                addButton.disabled = false;
+            }, 1000); // 1초 뒤에 블록이 채굴되도록 시뮬레이션
+        }
+
+        // 블록 추가 버튼 클릭 이벤트
+        addButton.addEventListener('click', () => {
+            addNewBlock(dataInput.value);
+        });
+
+        // 엔터 키 입력 이벤트
+        dataInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // 기본 폼 제출 방지
+                addNewBlock(dataInput.value);
+            }
+        });
+
+        // 유효성 검사 버튼 클릭 이벤트
+        validateButton.addEventListener('click', () => {
+            const isValid = myBlockchain.isChainValid();
+            if (isValid) {
+                messageDiv.textContent = "블록체인이 유효합니다!";
+                messageDiv.className = "text-center text-green-500 font-medium";
+            } else {
+                messageDiv.textContent = "블록체인이 손상되었습니다!";
+                messageDiv.className = "text-center text-red-500 font-medium";
+            }
+        });
+
+        // 초기 화면 렌더링 및 예시 데이터 추가
+        function initialize() {
+            renderBlockchain();
+            // 초기 예시 데이터 자동 추가
+            exampleData.forEach((data, i) => {
+                setTimeout(() => {
+                    addNewBlock(data);
+                }, 500 * (i + 1));
+            });
+        }
+        
+        initialize();
+    </script>
+</body>
+</html>
