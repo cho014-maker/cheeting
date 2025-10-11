@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>정보과제연구 계획서 | CPU 보안 취약점</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;700;800&display=swap');
+        body {
+            font-family: 'Pretendard', sans-serif;
+        }
+        /* Simple animation for elements appearing */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="max-w-5xl mx-auto p-4 sm:p-8 md:p-12">
+
+        <!-- Header -->
+        <header class="text-center mb-16 pt-8 pb-10 bg-gradient-to-br from-sky-50 to-gray-100 rounded-2xl">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-3 tracking-tight">CPU 보안 취약점 연구 계획서</h1>
+            <p class="text-lg text-gray-500">정보과제연구 최종 보고서</p>
+        </header>
+
+        <main class="space-y-20">
+
+            <!-- Section: 서론 -->
+            <section class="fade-in">
+                <h2 class="flex items-center text-3xl font-bold border-b-2 border-sky-200 pb-4 mb-8 text-gray-900">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-4 text-sky-500"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    서론
+                </h2>
+                <div class="space-y-8">
+                    <div>
+                        <h3 class="font-bold text-xl mb-3 text-gray-800">가. 연구 동기 및 필요성</h3>
+                        <p class="text-gray-600 leading-relaxed text-base md:text-lg">
+                            기존에 CPU는 '컴퓨터의 똑똑한 두뇌'라고만 생각했습니다. 그러나 'CPU도 해킹당할 수 있다'는 사실을 알게 되면서, 우리가 몰랐던 CPU의 숨겨진 위험성이 궁금해졌습니다.
+                        </p>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-xl mb-3 text-gray-800">나. 연구 목적</h3>
+                        <p class="text-gray-600 leading-relaxed text-base md:text-lg">
+                            본 연구는 CPU 성능 향상 기술이 어떻게 위험한 보안 취약점이 될 수 있는지 '스펙터' 사례를 통해 명확히 보여주고, 이에 대한 해결 방안을 고민해보는 것을 목표로 합니다.
+                        </p>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-xl mb-4 text-gray-800">다. 연구 문제</h3>
+                        <div class="space-y-4">
+                            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-shadow duration-300">
+                                <p class="font-bold text-sky-700 text-lg">1. CPU는 왜 더 빨라지려다 오히려 위험해졌는가?</p>
+                                <p class="text-gray-700 mt-2">CPU 성능을 높이는 '투기적 실행' 기술은 어떤 원리로 작동하며, 왜 이 기술 때문에 해킹에 취약한 허점이 발생하는지 탐구합니다.</p>
+                            </div>
+                            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-shadow duration-300">
+                                <p class="font-bold text-sky-700 text-lg">2. 해커는 이 허점을 이용해 어떻게 정보를 훔쳐보는가?</p>
+                                <p class="text-gray-700 mt-2">공격자가 CPU의 예측 오류를 유도하여, 시스템에 남는 미세한 흔적을 통해 어떻게 중요한 비밀 정보를 알아낼 수 있는지 분석합니다.</p>
+                            </div>
+                            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-shadow duration-300">
+                                <p class="font-bold text-sky-700 text-lg">3. 이 문제를 해결할 방법은 무엇이며, 어떤 어려움이 있는가?</p>
+                                <p class="text-gray-700 mt-2">이러한 보안 허점을 막기 위한 기술적 대응 방안은 무엇이며, 왜 보안을 강화하면 필연적으로 성능 저하 문제가 발생하는지 살펴봅니다.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 이론적 배경 -->
+            <section class="fade-in" style="animation-delay: 0.1s;">
+                <h2 class="flex items-center text-3xl font-bold border-b-2 border-sky-200 pb-4 mb-8 text-gray-900">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-4 text-sky-500"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    이론적 배경
+                </h2>
+                <div class="bg-white p-8 rounded-xl shadow-md border border-gray-200 mb-10">
+                    <h3 class="font-bold text-xl mb-3 text-gray-800">가. CPU가 일하는 방식과 숨겨진 허점</h3>
+                    <p class="text-gray-600 leading-relaxed text-base md:text-lg">
+                        CPU는 메모리보다 훨씬 빨라서, 메모리가 데이터를 가져오는 것을 기다리며 시간을 낭비합니다. 그래서 CPU 옆에 <strong class="text-sky-600 font-semibold">CPU 캐시</strong>라는 작은 임시 창고를 두고 자주 쓰는 데이터를 보관합니다. 여기서 더 나아가, CPU는 '다음에 뭘 할지' 미리 예측해서 일을 처리하는 <strong class="text-sky-600 font-semibold">'투기적 실행'</strong>이라는 기술을 씁니다.
+                        <br><br>
+                        하지만 바로 이 기술에 허점이 있습니다. 예측이 틀리면 했던 일을 취소하지만, 그 일이 '캐시'에 미세한 흔적을 남깁니다. 공격자는 이 흔적을 <strong class="text-amber-600 font-semibold">'사이드 채널 공격'</strong>으로 몰래 엿봅니다. 금고를 직접 열지 않고 소리로 비밀번호를 알아내는 것처럼, CPU가 일한 흔적(데이터 접근 시간 차이)을 분석해 비밀 정보를 빼내는 것입니다.
+                    </p>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-xl mb-5 text-gray-800">나. 핵심 용어 쉽게 풀이하기</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="bg-white p-6 rounded-xl border border-gray-200 hover:border-sky-300 transition-colors duration-300">
+                            <h4 class="font-bold text-sky-700 text-lg">투기적 실행</h4>
+                            <p class="text-sm text-gray-600 mt-2">CPU가 "아마 이 명령을 실행하겠지?"라고 예측하고, 결과를 미리 처리해두는 기술입니다. 예측이 맞으면 컴퓨터가 빨라집니다.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-gray-200 hover:border-sky-300 transition-colors duration-300">
+                            <h4 class="font-bold text-sky-700 text-lg">분기 예측</h4>
+                            <p class="text-sm text-gray-600 mt-2">프로그램의 갈림길(if문)에서 어느 길로 갈지 미리 예측하는 기술입니다. 이 예측이 잘 맞아야 '투기적 실행'도 효과가 좋습니다.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-gray-200 hover:border-amber-300 transition-colors duration-300">
+                            <h4 class="font-bold text-amber-700 text-lg">사이드 채널 공격</h4>
+                            <p class="text-sm text-gray-600 mt-2">암호를 직접 푸는 대신, 컴퓨터가 일할 때 생기는 시간 차이 같은 '옆길' 정보로 비밀을 알아내는 해킹 방법입니다.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-gray-200 hover:border-amber-300 transition-colors duration-300">
+                            <h4 class="font-bold text-amber-700 text-lg">캐시 타이밍 공격</h4>
+                            <p class="text-sm text-gray-600 mt-2">CPU 임시 창고(캐시)에 데이터가 있을 때와 없을 때의 접근 속도 차이를 이용합니다. 이 '시간 차이'로 정보 유출을 알아내는 것입니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 연구 내용 및 방법 -->
+            <section class="fade-in" style="animation-delay: 0.2s;">
+                <h2 class="flex items-center text-3xl font-bold border-b-2 border-sky-200 pb-4 mb-8 text-gray-900">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-4 text-sky-500"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>
+                    연구 내용 및 방법
+                </h2>
+                <div class="space-y-10">
+                    <div>
+                        <h3 class="font-bold text-xl mb-3 text-gray-800">가. 연구 대상 및 범위</h3>
+                        <p class="text-gray-600 leading-relaxed text-base">
+                            <strong class="text-gray-700">연구 대상:</strong> CPU의 사이드 채널 공격 취약점<br>
+                            <strong class="text-gray-700">연구 범위:</strong> <strong class="text-red-500 font-semibold">'스펙터(Spectre)'</strong> 취약점 중 한 가지를 선정하여, 공개된 예제 코드를 분석하고 알려진 해결책을 적용해보는 과정을 연구합니다.
+                        </p>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-xl mb-3 text-gray-800">나. 연구 절차 및 방법 (학생 수준에 맞춘 현실적 계획)</h3>
+                        <ol class="list-decimal list-inside space-y-4 text-gray-600 text-base md:text-lg">
+                            <li><strong class="text-gray-700">이론 공부 및 코드 분석:</strong> '스펙터'의 원리를 깊이 공부하고, 공개된 '개념 증명(PoC)' 예제 코드를 찾아 분석합니다.</li>
+                            <li><strong class="text-gray-700">실험 환경에서 취약점 확인:</strong> 분석한 예제 코드를 안전한 가상 환경(VM)에서 직접 실행시켜, 정보 유출 현상을 확인합니다.</li>
+                            <li><strong class="text-gray-700">알려진 해결책 적용 및 비교:</strong> OS 보안 패치 등 알려진 해결 방법을 적용했을 때와 안 했을 때의 차이를 비교하여 효과를 검증합니다.</li>
+                            <li><strong class="text-gray-700">결과 분석 및 보고서 작성:</strong> 실험 결과를 바탕으로 취약점의 위험성과 해결책의 효과를 분석하고, 전체 연구 과정을 보고서로 정리합니다.</li>
+                        </ol>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-xl mb-5 text-gray-800">다. 예상 주요 활동 일정</h3>
+                        <div class="relative border-l-2 border-sky-200 pl-8 space-y-10">
+                            <div class="relative">
+                                <div class="absolute -left-11 top-1.5 w-6 h-6 bg-sky-500 rounded-full border-4 border-white"></div>
+                                <p class="font-bold text-gray-800">1주차 (9/15~9/21): 이론 정립 및 연구 환경 구축</p>
+                                <p class="text-sm text-gray-500 mt-1">'스펙터' 원리 공부 및 안전한 가상 실험 환경 준비</p>
+                            </div>
+                            <div class="relative">
+                                <div class="absolute -left-11 top-1.5 w-6 h-6 bg-sky-500 rounded-full border-4 border-white"></div>
+                                <p class="font-bold text-gray-800">2주차 (9/22~9/28): 취약점 재현 및 분석</p>
+                                <p class="text-sm text-gray-500 mt-1">공개된 예제 코드를 실행하며 문제 현상 직접 확인</p>
+                            </div>
+                            <div class="relative">
+                                <div class="absolute -left-11 top-1.5 w-6 h-6 bg-sky-500 rounded-full border-4 border-white"></div>
+                                <p class="font-bold text-gray-800">3주차 (9/29~10/5): 해결 방법 적용 및 효과 검증</p>
+                                <p class="text-sm text-gray-500 mt-1">보안 패치를 적용하고 취약점이 막히는지 비교 실험</p>
+                            </div>
+                            <div class="relative">
+                                <div class="absolute -left-11 top-1.5 w-6 h-6 bg-sky-500 rounded-full border-4 border-white"></div>
+                                <p class="font-bold text-gray-800">4주차 (10/6~10/12): 결과 정리 및 보고서 작성</p>
+                                <p class="text-sm text-gray-500 mt-1">실험 결과 분석 및 전체 연구 내용 정리</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 기대 효과 -->
+            <section class="fade-in" style="animation-delay: 0.3s;">
+                <h2 class="flex items-center text-3xl font-bold border-b-2 border-sky-200 pb-4 mb-8 text-gray-900">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-4 text-sky-500"><path d="M12 2.69l.346.666L12.7 4l.666.346L14 4.7l.346-.666.333-.334L14.346 3l.666-.346L14.7 2l-.346-.667-.333.334L14 .333 13.334 0l-.334.333L12.667 1l-.333.333L12 .333 11.334 0l-.333.333L10.667 1l-.333.333-.334-.333L9.334.333 9 0l-.667.333L8 .333l.333.334.334.333.666.346L10 2l-.333.333-.334.334L9.667 3l-.667.346L8.333 4l.333.333.334.334.667.346L10 5.333l-.333.334-.334.333L9 .667 8.333 1l-.333.333L7.667 2l-.333.333-.334.334L6.667 3l-.667.346L5.333 4l.333.333.334.334.667.346L7 5.333l-1 1.667-1.667 1-1.667-1L1 8.333l-1 .667 1 .667 1.667-1 1.667 1 1-1.667L7 8.333l.667-.333L8 7.667l.333-.334.334-.333L9 6.667l.667-.333L10 6l.333-.333.334-.333L11 5l.667-.333L12 4.333l.333.334.334.333L13 5.333l.667.333L14 6l.333.333.334.333L15 6.667l.667.333L16 7.333l.333.334.334.333L17 8.333l1 1.667 1.667 1 1.667-1 1-1.667-1.667-1-1.667 1-1-1.667L15 8.333l-.333-.334-.334-.333L14 7.333l-.667-.333L13 6.667l-.333-.334-.334-.333L12 5.667l-.667-.333L11 5l-.333-.334-.334-.333L10 4zM22 12l-2-2-2 2-2-2-2 2-2-2-2 2-2-2-2 2-2-2-2 2-2-2"></path></svg>
+                    기대 효과
+                </h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-xl border border-gray-200">
+                        <h4 class="font-bold text-lg text-gray-800 mb-2">심층적 지식 습득</h4>
+                        <p class="text-gray-600">CPU의 복잡한 작동 원리를 이론이 아닌, 실제 경험을 통해 깊이 있게 이해할 수 있습니다.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-gray-200">
+                        <h4 class="font-bold text-lg text-gray-800 mb-2">문제 해결 능력 향상</h4>
+                        <p class="text-gray-600">가설 수립, 실험, 결과 분석의 과학적 탐구 과정을 통해 논리적 사고력과 문제 해결 능력을 기를 수 있습니다.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-gray-200">
+                        <h4 class="font-bold text-lg text-gray-800 mb-2">보안 의식 함양</h4>
+                        <p class="text-gray-600">하드웨어 수준의 보안이 왜 중요한지 깨닫고, 기술을 다각적으로 바라보는 보안 의식을 갖게 됩니다.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-gray-200">
+                        <h4 class="font-bold text-lg text-gray-800 mb-2">진로 탐색의 발판</h4>
+                        <p class="text-gray-600">사이버 보안, 시스템 엔지니어링 등 IT 분야의 진로를 탐색하고, 역량을 증명하는 포트폴리오를 확보하게 됩니다.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 활용 방안 -->
+            <section class="fade-in" style="animation-delay: 0.4s;">
+                <h2 class="flex items-center text-3xl font-bold border-b-2 border-sky-200 pb-4 mb-8 text-gray-900">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-4 text-sky-500"><path d="M12 18a5.87 5.87 0 0 0 5.87-5.87 5.87 5.87 0 0 0-5.87-5.87 5.87 5.87 0 0 0-5.87 5.87 5.87 5.87 0 0 0 5.87 5.87z"></path><path d="M12 18a5.87 5.87 0 0 0 5.87-5.87 5.87 5.87 0 0 0-5.87-5.87 5.87 5.87 0 0 0-5.87 5.87 5.87 5.87 0 0 0 5.87 5.87z"></path><path d="M12 6a5.87 5.87 0 0 0-5.87 5.87 5.87 5.87 0 0 0 5.87 5.87 5.87 5.87 0 0 0 5.87-5.87 5.87 5.87 0 0 0-5.87-5.87z"></path><line x1="6.13" y1="17.87" x2="17.87" y2="6.13"></line><line x1="6.13" y1="6.13" x2="17.87" y2="17.87"></line></svg>
+                    활용 방안
+                </h2>
+                <div class="bg-white p-8 rounded-xl shadow-md border border-gray-200">
+                    <ul class="list-disc list-outside space-y-4 pl-5 text-gray-600 text-base md:text-lg">
+                        <li>본 연구 보고서는 교내외 과학 경진대회나 학술제에 출품할 수 있는 <strong class="text-gray-800">공식적인 학술 자료</strong>로 활용됩니다.</li>
+                        <li>연구 과정을 정리하여 교내 동아리나 친구들을 위한 세미나 자료로 만들어, <strong class="text-gray-800">복잡한 기술 지식을 나누고 확산</strong>시킬 수 있습니다.</li>
+                        <li>분석하고 실험한 코드를 GitHub에 공개하여, 자신의 학습 과정과 기술 역량을 증명하는 <strong class="text-gray-800">온라인 포트폴리오</strong>로 활용합니다.</li>
+                        <li>이번 연구는 더 심화된 후속 연구를 위한 <strong class="text-gray-800">튼튼한 기초 자료</strong>가 될 수 있습니다.</li>
+                    </ul>
+                </div>
+            </section>
+            
+            <!-- Section: 참고 문헌 -->
+            <section class="fade-in" style="animation-delay: 0.5s;">
+                <h2 class="flex items-center text-3xl font-bold border-b-2 border-sky-200 pb-4 mb-8 text-gray-900">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-4 text-sky-500"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg>
+                    참고 문헌
+                </h2>
+                <ul class="list-decimal list-inside space-y-3">
+                    <li><a href="https://library.gabia.com/contents/infrahosting/5412/" target="_blank" class="text-sky-600 hover:underline hover:text-sky-800 transition-colors">CPU 취약점 종합보고서 ①: 취약점 기본원리</a></li>
+                    <li><a href="https://www.dbpia.co.kr/journal/articleDetail?nodeId=NODE10510200" target="_blank" class="text-sky-600 hover:underline hover:text-sky-800 transition-colors">CPU 마이크로아키텍처 보안 기술 연구 동향</a></li>
+                </ul>
+            </section>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="text-center mt-24 pt-10 border-t border-gray-200">
+            <p class="text-sm text-gray-500">&copy; 2025. All rights reserved. A journey of a thousand lines of code begins with a single step.</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>
+
