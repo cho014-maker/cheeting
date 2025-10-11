@@ -21,14 +21,11 @@ def load_html(file_name):
 def main():
     st.set_page_config(layout="wide")
     st.title("HTML 파일 불러오기")
-    st.title("Load HTML File")
-
 
     # 드롭다운 메뉴를 만들어 사용자가 HTML 파일을 선택하게 합니다.
     # Create a dropdown menu to let the user select an HTML file.
     selected_file = st.selectbox(
         "불러올 HTML 파일을 선택하세요:",
-        ("불러올 HTML 파일을 선택하세요:", "Select the HTML file to load:"),
         ('index.html', 'index2.html', 'index3.html', 'index4.html')
     )
 
@@ -45,3 +42,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
