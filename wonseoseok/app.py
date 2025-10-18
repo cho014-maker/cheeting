@@ -26,7 +26,7 @@ def main():
     # Create a dropdown menu to let the user select an HTML file.
     selected_file = st.selectbox(
         "불러올 HTML 파일을 선택하세요:",
-        ('index.html', 'index2.html', 'index3.html', 'index4.html')
+        ('index.html', 'index2.html', 'index3.html', 'index4.html', 'index5.html')
     )
 
     # 선택된 파일의 HTML 코드를 불러옵니다.
@@ -42,4 +42,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
