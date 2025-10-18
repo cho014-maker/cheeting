@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스마트실 최단 경로 찾기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        /* 시각화 SVG 스타일 */
+        .path {
+            stroke-width: 2;
+            stroke: #cbd5e1; /* slate-300 */
+            transition: all 0.3s ease-in-out;
+        }
+        .node {
+            fill: #94a3b8; /* slate-400, 회색 기본 노드 */
+            transition: all 0.3s ease-in-out;
+        }
+        .path.highlight {
+            stroke-width: 5;
+            stroke: #3b82f6; /* blue-500 */
+        }
+        .node.highlight {
+            fill: #3b82f6; /* blue-500 */
+        }
+        .node.start {
+            fill: #16a34a; /* green-600 */
+        }
+        .node.end {
+            fill: #dc2626; /* red-600 */
+        }
+        .node-label {
+            font-size: 10px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+            fill: #1e293b; /* slate-800, 검은색 기본 라벨 */
+        }
+        .node-label.highlight {
+            fill: #ffffff;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900">각 반에서 스마트실까지 최단 경로 찾기</h1>
+            <p class="text-slate-600 mt-2">다익스트라 알고리즘을 이용하여 가장 빠른 길을 찾아보세요.</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- 제어 및 결과 패널 -->
+            <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-xl font-bold mb-4 border-b pb-2">경로 탐색</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="startNode" class="block text-sm font-medium text-slate-700 mb-1">출발지 (2학년 교실) 선택:</label>
+                        <select id="startNode" class="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <!-- 옵션은 JS로 채워집니다. -->
+                        </select>
+                    </div>
+                    <button id="findPathBtn" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors">
+                        최단 경로 찾기
+                    </button>
+                </div>
+
+                <div id="result" class="mt-6 p-4 bg-slate-50 rounded-md border border-slate-200 hidden">
+                    <h3 class="text-lg font-bold mb-2 text-slate-900">탐색 결과</h3>
+                    <p class="text-sm text-slate-600"><strong>총 소요 시간:</strong> <span id="totalTime" class="font-bold text-blue-600"></span>초</p>
+                    <p class="text-sm text-slate-600 mt-1"><strong>경로:</strong></p>
+                    <div id="pathResult" class="text-sm text-slate-800 mt-1 font-mono bg-white p-2 rounded border"></div>
+                </div>
+            </div>
+
+            <!-- 지도 시각화 패널 -->
+            <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-lg">
+                 <h2 class="text-xl font-bold mb-4 border-b pb-2">학교 구조도 (1층과 3층)</h2>
+                 <div class="w-full aspect-[4/3] border border-slate-200 rounded-md overflow-hidden">
+                    <svg id="map" class="w-full h-full" viewBox="0 0 650 450"></svg>
+                 </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const nodes = {
+            // 1층 앞동
+            '2-1반': { x: 50, y: 50 }, '2-2반': { x: 50, y: 120 }, '2-3반': { x: 50, y: 190 },
+            '앞동복도': { x: 120, y: 120 },
+            '계단A(앞)_1층': { x: 120, y: 50 }, // 1반 옆
+            '계단B(앞)_1층': { x: 120, y: 190 }, // 3반 옆
+            '엘리베이터A(앞)_1층': { x: 120, y: 240 }, // 3반 옆
+
+            // 통로 노드
+            '통로(3-4)': { x: 200, y: 120 },
+            '통로(1-8)': { x: 235, y: 330 },
+
+            // 1층 뒷동
+            '2-4반': { x: 350, y: 50 }, '2-5반': { x: 350, y: 120 }, '2-6반': { x: 350, y: 190 },
+            '2-7반': { x: 350, y: 260 }, '2-8반': { x: 350, y: 330 },
+            '뒷동복도': { x: 280, y: 190 },
+            '계단C(뒤)_1층': { x: 280, y: 50 }, // 4반 근처
+            '엘리베이터B(뒤)_1층': { x: 280, y: 100 }, // 4반 근처
+
+            // 3층
+            '계단A(앞)_3층': { x: 500, y: 50 },
+            '계단B(앞)_3층': { x: 500, y: 120 },
+            '엘리베이터A(앞)_3층': { x: 500, y: 170 },
+            '계단C(뒤)_3층': { x: 500, y: 240 },
+            '엘리베이터B(뒤)_3층': { x: 500, y: 290 },
+            '스마트실': { x: 600, y: 180 },
+        };
+
+        const edges = [
+            // 앞동 1층 내부 경로
+            { from: '2-1반', to: '앞동복도', time: 10 }, { from: '2-2반', to: '앞동복도', time: 5 },
+            // { from: '2-3반', to: '앞동복도', time: 10 }, // 직접 연결로 대체
+            { from: '2-3반', to: '계단B(앞)_1층', time: 5 }, // 3반은 계단B가 더 빠름
+            { from: '2-3반', to: '엘리베이터A(앞)_1층', time: 15 },
+            { from: '앞동복도', to: '계단A(앞)_1층', time: 10 },
+            { from: '앞동복도', to: '계단B(앞)_1층', time: 10 }, { from: '앞동복도', to: '엘리베이터A(앞)_1층', time: 15 },
+
+            // 뒷동 1층 내부 경로
+            // { from: '2-4반', to: '뒷동복도', time: 15 }, // 직접 연결로 대체
+            { from: '2-4반', to: '엘리베이터B(뒤)_1층', time: 5 }, // 4반은 엘리베이터가 더 빠름
+            { from: '2-4반', to: '계단C(뒤)_1층', time: 15 },
+            { from: '2-5반', to: '뒷동복도', time: 10 },
+            { from: '2-6반', to: '뒷동복도', time: 5 },
+            { from: '2-7반', to: '뒷동복도', time: 10 },
+            { from: '2-8반', to: '뒷동복도', time: 15 },
+            { from: '뒷동복도', to: '계단C(뒤)_1층', time: 10 },
+            { from: '뒷동복도', to: '엘리베이터B(뒤)_1층', time: 5 },
+            { from: '계단C(뒤)_1층', to: '엘리베이터B(뒤)_1층', time: 5 },
+
+
+            // 통로 (앞동-뒷동 연결)
+            { from: '계단B(앞)_1층', to: '통로(3-4)', time: 10 }, // 3반 근처 -> 통로
+            { from: '통로(3-4)', to: '계단C(뒤)_1층', time: 10 }, // 통로 -> 4반 근처
+            { from: '계단A(앞)_1층', to: '통로(1-8)', time: 15 }, // 1반 근처 -> 통로
+
+            // 지름길 통로(1-8) 연결
+            { from: '2-8반', to: '통로(1-8)', time: 10 },
+            { from: '2-7반', to: '통로(1-8)', time: 15 },
+            { from: '2-6반', to: '통로(1-8)', time: 20 },
+
+            // 수직 이동 (1층 -> 3층)
+            { from: '계단A(앞)_1층', to: '계단A(앞)_3층', time: 45 },
+            { from: '계단B(앞)_1층', to: '계단B(앞)_3층', time: 45 },
+            { from: '엘리베이터A(앞)_1층', to: '엘리베이터A(앞)_3층', time: 60 }, // 대기 30초 + 이동 30초
+            { from: '계단C(뒤)_1층', to: '계단C(뒤)_3층', time: 45 },
+            { from: '엘리베이터B(뒤)_1층', to: '엘리베이터B(뒤)_3층', time: 60 }, // 대기 30초 + 이동 30초
+
+            // 3층 내부 경로
+            { from: '계단A(앞)_3층', to: '스마트실', time: 15 },
+            { from: '계단B(앞)_3층', to: '스마트실', time: 20 },
+            { from: '엘리베이터A(앞)_3층', to: '스마트실', time: 10 },
+            { from: '계단C(뒤)_3층', to: '스마트실', time: 25 },
+            { from: '엘리베이터B(뒤)_3층', to: '스마트실', time: 10 },
+        ];
+
+        const startNodeSelect = document.getElementById('startNode');
+        const findPathBtn = document.getElementById('findPathBtn');
+        const resultDiv = document.getElementById('result');
+        const totalTimeSpan = document.getElementById('totalTime');
+        const pathResultDiv = document.getElementById('pathResult');
+        const mapSvg = document.getElementById('map');
+        const endNodeId = '스마트실';
+
+        const graph = new Map();
+        Object.keys(nodes).forEach(nodeId => graph.set(nodeId, new Map()));
+        edges.forEach(({ from, to, time }) => {
+            graph.get(from).set(to, time);
+            graph.get(to).set(from, time);
+        });
+
+        function dijkstra(startNode, endNode) {
+            const distances = new Map();
+            const prev = new Map();
+            const pq = new Map();
+
+            graph.forEach((_, node) => {
+                distances.set(node, Infinity);
+                prev.set(node, null);
+            });
+
+            distances.set(startNode, 0);
+            pq.set(startNode, 0);
+
+            while (pq.size > 0) {
+                const closestNode = [...pq.entries()].sort((a, b) => a[1] - b[1])[0][0];
+                if (closestNode === endNode || distances.get(closestNode) === Infinity) break;
+                pq.delete(closestNode);
+
+                const neighbors = graph.get(closestNode);
+                if (neighbors) {
+                    neighbors.forEach((time, neighbor) => {
+                        const newDist = distances.get(closestNode) + time;
+                        if (newDist < distances.get(neighbor)) {
+                            distances.set(neighbor, newDist);
+                            prev.set(neighbor, closestNode);
+                            pq.set(neighbor, newDist);
+                        }
+                    });
+                }
+            }
+
+            const path = [];
+            let currentNode = endNode;
+            while (currentNode !== null) {
+                path.unshift(currentNode);
+                currentNode = prev.get(currentNode);
+            }
+
+            return (path[0] === startNode) 
+                ? { path, time: distances.get(endNode) } 
+                : { path: [], time: Infinity };
+        }
+
+        function initialize() {
+            const startClasses = Array.from({length: 8}, (_, i) => `2-${i + 1}반`);
+            startClasses.forEach(nodeId => {
+                const option = document.createElement('option');
+                option.value = nodeId;
+                option.textContent = nodeId;
+                startNodeSelect.appendChild(option);
+            });
+            drawMap([]);
+        }
+
+        function drawMap(highlightPath) {
+            mapSvg.innerHTML = '';
+            const pathSet = new Set(highlightPath);
+            const edgeSet = new Set();
+            for (let i = 0; i < highlightPath.length - 1; i++) {
+                edgeSet.add(`${highlightPath[i]}-${highlightPath[i+1]}`);
+                edgeSet.add(`${highlightPath[i+1]}-${highlightPath[i]}`);
+            }
+
+            edges.forEach(edge => {
+                if (!nodes[edge.from] || !nodes[edge.to]) return;
+                const pos1 = nodes[edge.from];
+                const pos2 = nodes[edge.to];
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', pos1.x); line.setAttribute('y1', pos1.y);
+                line.setAttribute('x2', pos2.x); line.setAttribute('y2', pos2.y);
+                line.classList.add('path');
+                if (edgeSet.has(`${edge.from}-${edge.to}`)) line.classList.add('highlight');
+                mapSvg.appendChild(line);
+            });
+
+            Object.entries(nodes).forEach(([id, pos]) => {
+                const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', pos.x); circle.setAttribute('cy', pos.y);
+                circle.setAttribute('r', 12); circle.classList.add('node');
+                
+                if (id === startNodeSelect.value) circle.classList.add('start');
+                if (id === endNodeId) circle.classList.add('end');
+                if (pathSet.has(id)) circle.classList.add('highlight');
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', pos.x); text.setAttribute('y', pos.y);
+                text.textContent = id.replace(/_\d+층$/, '').replace(/\(앞\)|\(뒤\)/, '');
+                text.classList.add('node-label');
+                if (pathSet.has(id) || id === startNodeSelect.value || id === endNodeId) {
+                    text.classList.add('highlight');
+                }
+                group.appendChild(circle); group.appendChild(text);
+                mapSvg.appendChild(group);
+            });
+        }
+        
+        findPathBtn.addEventListener('click', () => {
+            const startNodeId = startNodeSelect.value;
+            const result = dijkstra(startNodeId, endNodeId);
+
+            if (result.time === Infinity) {
+                totalTimeSpan.textContent = '경로 없음';
+                pathResultDiv.textContent = '경로를 찾을 수 없습니다.';
+            } else {
+                totalTimeSpan.textContent = result.time;
+                pathResultDiv.innerHTML = result.path.join(' &rarr; ');
+            }
+            resultDiv.classList.remove('hidden');
+            drawMap(result.path);
+        });
+        
+        initialize();
+    });
+    </script>
+</body>
+</html>
+
+
+
+
+
