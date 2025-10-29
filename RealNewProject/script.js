@@ -1,5 +1,5 @@
 // 🚨 여기에 본인의 넥슨 API 키를 입력하세요.
-const API_KEY = "YOUR_NEXON_API_KEY";
+const API_KEY = "test_e444de2cdc42da78da95ce58467b58af26b0e6f6a065faba518de31630092d95efe8d04e6d233bd35cf2fabdeb93fb0d";
 
 // 어제 날짜를 YYYY-MM-DD 형식으로 가져오는 헬퍼 함수
 // 메이플 API는 안정적인 조회를 위해 어제 날짜 기준을 권장합니다.
