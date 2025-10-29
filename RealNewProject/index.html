@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>넥슨 API 캐릭터 검색</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>메이플스토리 캐릭터 검색</h1>
+        <div class="search-box">
+            <input type="text" id="nicknameInput" placeholder="캐릭터 닉네임을 입력하세요">
+            <button id="searchButton">검색</button>
+        </div>
+        
+        <div id="loader" class="hidden">불러오는 중...</div>
+        
+        <div id="resultArea" class="hidden">
+            <h2>기본 정보</h2>
+            <div id="basicInfo">
+                <img id="charImage" src="" alt="캐릭터 이미지">
+                <div id="charDetails">
+                    <p><strong>닉네임:</strong> <span id="charName"></span></p>
+                    <p><strong>월드:</strong> <span id="charWorld"></span></p>
+                    <p><strong>레벨:</strong> <span id="charLevel"></span></p>
+                    <p><strong>직업:</strong> <span id="charClass"></span></p>
+                </div>
+            </div>
+            
+            <hr>
+            
+            <h2>장비 정보 (예시)</h2>
+            <div id="equipmentInfo">
+                </div>
+        </div>
+        
+        <div id="errorArea" class="hidden"></div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
