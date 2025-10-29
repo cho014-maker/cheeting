@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚽ FC 온라인 이적 시장 거래 내역 조회</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #e8eaf6; color: #333; margin: 20px; }
+        .container { max-width: 1000px; margin: auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+        h1 { color: #3f51b5; text-align: center; margin-bottom: 30px; border-bottom: 3px solid #3f51b5; padding-bottom: 10px; }
+        form { display: flex; justify-content: center; margin-bottom: 40px; gap: 10px; }
+        input[type="text"] { padding: 12px 18px; border: 2px solid #ddd; border-radius: 6px; flex-grow: 1; max-width: 350px; font-size: 17px; }
+        button { background-color: #4caf50; color: white; padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-size: 17px; font-weight: bold; transition: background-color 0.3s; }
+        button:hover { background-color: #388e3c; }
+        .error { color: #e53935; background-color: #ffebee; border: 1px solid #e53935; padding: 15px; border-radius: 5px; text-align: center; margin-top: 15px; font-weight: bold; }
+        .results h2 { color: #3f51b5; border-bottom: 2px solid #9fa8da; padding-bottom: 8px; margin-top: 20px; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 20px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background-color: #f5f5f5; font-weight: 600; color: #333; }
+        tr:last-child td { border-bottom: none; }
+        tr.buy-row { background-color: #e8f5e9; } /* 구매 배경색 */
+        tr.sell-row { background-color: #ffebee; } /* 판매 배경색 */
+        .buy { color: #2e7d32; font-weight: bold; } /* 구매 텍스트 색상 */
+        .sell { color: #d32f2f; font-weight: bold; } /* 판매 텍스트 색상 */
+        .player-info { display: flex; align-items: center; }
+        .player-info img { width: 45px; height: 45px; border-radius: 50%; margin-right: 12px; border: 2px solid #3f51b5; object-fit: cover; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚽ FC 온라인 이적 시장 거래 내역 조회</h1>
+        
+        <form method="POST">
+            <input type="text" name="nickname" placeholder="FC 온라인 닉네임을 입력하세요" value="{{ nickname if nickname else '' }}">
+            <button type="submit">내역 조회</button>
+        </form>
+
+        {% if error %}
+            <p class="error">❌ {{ error }}</p>
+        {% elif history %}
+            <div class="results">
+                <h2>'{{ nickname }}' 님의 최근 거래 내역 (총 {{ history | length }}건)</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>거래 일시</th>
+                            <th>구분</th>
+                            <th>선수명</th>
+                            <th>거래 금액 (BP)</th>
+                            <th>현재 이적 시세 (BP)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in history %}
+                        <tr class="{{ 'buy-row' if record.tradeType == '구매' else 'sell-row' }}">
+                            <td>{{ record.tradeDate.split("T")[0] }} {{ record.tradeDate.split("T")[1].split(".")[0] }}</td>
+                            <td class="{{ 'buy' if record.tradeType == '구매' else 'sell' }}">{{ record.tradeType }}</td>
+                            <td>
+                                <div class="player-info">
+                                    <img src="{{ record.image_url }}" alt="{{ record.playerName }}" onerror="this.onerror=null; this.src='https://fconline.nexon.com/static/live/images/common/fconline_icon.png';">
+                                    {{ record.playerName }}
+                                </div>
+                            </td>
+                            <td>{{ record.saleValue }}</td>
+                            <td>{{ record.currentPrice }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
