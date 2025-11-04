@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameBot Live Simulator</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font and base styles */
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .card { background-color: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); }
+        .table-container { max-height: 400px; overflow-y: auto; }
+        .bot-row { background-color: #fee2e2; } /* Red for Bot alert */
+    </style>
+    <script>
+        // --- Global State and Constants ---
+        let isSimulationRunning = false;
+        let iteration = 0;
+        let intervalId = null;
+        let tradeHistory = [];
+        const MAX_HISTORY = 100; // Keep history limited
+        const DISPLAY_COUNT = 10;
+        
+        // Mock Model Features (Used for UI display and feature alignment)
+        const MOCK_MODEL_FEATURES = [
+            "id_encoded", "trade_type_encoded", "trade_price", "is_price_spike", 
+            "player_id_encoded", "time_diff_sec", "price_change_rate"
+        ];
+
+        // Ping Twi (급격한 가격 변동) Detection Parameters
+        const SPIKE_PRICE_THRESHOLD = 0.10; // 10% 이상 가격 변동
+        const SPIKE_TIME_WINDOW_SEC = 5;    // 5초 이내 발생
+
+        // Utility Maps for Encoding (Simulated Label/Category Encoding)
+        const encodingMaps = {
+            'trade_type': { 'buy': 0, 'sell': 1 },
+            'player_id': {} // Dynamically assigned
+        };
+        let nextPlayerIdCode = 0;
+        let lastPlayerTrade = {}; // Stores { player_id: { price: lastPrice, time: lastTime, trade_id: lastTradeId } }
+
+        // --- Core Functions ---
+
+        /**
+         * @brief 랜덤 거래 데이터를 생성합니다.
+         */
+        function genTrade(i) {
+            const possiblePlayers = ["player1", "player2", "player3", "bot-trader-A", "player4", "player5", "bot-trader-B", "player6", "player7"];
+            const player_id = possiblePlayers[Math.floor(Math.random() * possiblePlayers.length)];
+            const is_bot_player = player_id.startsWith('bot');
+            
+            // 가격: 100000 ~ 1000000 범위에서 랜덤
+            let base_price = Math.floor(Math.random() * 900 + 100) * 1000;
+
+            // 10% 확률로 직전 가격 근처에서 생성하여 핑튀기 가능성 높임
+            const lastTrade = lastPlayerTrade[player_id];
+            if (lastTrade && Math.random() < 0.1) {
+                // 이전 가격의 90% ~ 110% 사이에서 가격 변동
+                base_price = Math.floor(lastTrade.price * (1 + (Math.random() * 0.2 - 0.1)));
+            }
+            
+            // 2% 확률로 급격한 가격 변동 유발 (봇 시뮬레이션)
+            if (is_bot_player && Math.random() < 0.1) {
+                base_price = lastTrade ? Math.floor(lastTrade.price * (1.15 + Math.random() * 0.1)) : base_price; // 15% 이상 급등
+            }
+
+
+            return {
+                "id": i,
+                "ouid": `OU${Math.floor(Math.random() * 9000 + 1000)}`,
+                "trade_type": Math.random() < 0.5 ? "buy" : "sell",
+                "player_id": player_id,
+                "trade_price": Math.max(1000, base_price), // 최소 가격 보장
+                "trade_date": new Date(),
+                "is_bot_player_source": is_bot_player // For internal testing/display
+            };
+        }
+
+        /**
+         * @brief LightGBM 모델이 요구하는 형태로 데이터를 인코딩하고 특징을 계산합니다.
+         */
+        function calculateFeatures(newTrade) {
+            // 1. Feature Encoding (Label/Category)
+            const tradeTypeEncoded = encodingMaps['trade_type'][newTrade.trade_type];
+            if (!(newTrade.player_id in encodingMaps['player_id'])) {
+                encodingMaps['player_id'][newTrade.player_id] = nextPlayerIdCode++;
+            }
+            const playerIdEncoded = encodingMaps['player_id'][newTrade.player_id];
+
+            // 2. Price Spike (핑튀는지) Feature Calculation
+            const lastTrade = lastPlayerTrade[newTrade.player_id];
+            let isPriceSpike = 0;
+            let priceChangeRate = 0;
+            let timeDiffSec = 0;
+
+            if (lastTrade) {
+                const priceDiff = newTrade.trade_price - lastTrade.price;
+                priceChangeRate = priceDiff / lastTrade.price;
+                
+                const timeDiffMs = newTrade.trade_date.getTime() - lastTrade.time.getTime();
+                timeDiffSec = timeDiffMs / 1000;
+
+                // 조건: 가격 변화율이 임계값 초과 AND 시간 간격이 매우 짧음
+                if (Math.abs(priceChangeRate) >= SPIKE_PRICE_THRESHOLD && timeDiffSec <= SPIKE_TIME_WINDOW_SEC) {
+                    isPriceSpike = 1;
+                }
+            }
+
+            // Update Last Trade History
+            lastPlayerTrade[newTrade.player_id] = {
+                price: newTrade.trade_price,
+                time: newTrade.trade_date,
+                trade_id: newTrade.id
+            };
+
+            // 3. Prepare the final feature object (aligned with MOCK_MODEL_FEATURES)
+            const features = {
+                "id_encoded": newTrade.id,
+                "trade_type_encoded": tradeTypeEncoded,
+                "trade_price": newTrade.trade_price,
+                "player_id_encoded": playerIdEncoded,
+                "is_price_spike": isPriceSpike,
+                "price_change_rate": priceChangeRate,
+                "time_diff_sec": timeDiffSec
+            };
+
+            return features;
+        }
+
+        /**
+         * @brief LightGBM 모델의 예측을 모의(Mock)합니다.
+         * 이 함수는 is_price_spike 특징을 핵심 판정 기준으로 사용합니다.
+         */
+        function mockPredict(features) {
+            let bot_probability = 0.01; // 기본적으로 정상 확률이 높음
+
+            // 1. '핑튀는지' 특징이 1인 경우, 봇 확률을 높게 설정 (핵심 로직)
+            if (features.is_price_spike === 1) {
+                bot_probability = 0.95; // 95% 확률로 봇
+            } 
+            // 2. 다른 특징들을 사용하여 봇 확률을 무작위로 높이거나 낮춤 (시뮬레이션)
+            else if (features.player_id_encoded >= encodingMaps['player_id']['bot-trader-A'] && features.player_id_encoded <= encodingMaps['player_id']['bot-trader-B']) {
+                 // 가상의 봇 플레이어 ID인 경우, 봇 확률을 적당히 높임
+                 bot_probability = 0.4 + Math.random() * 0.4; // 40% ~ 80%
+            }
+            else {
+                // 정상 사용자 거래로 간주
+                bot_probability = Math.random() * 0.2; // 0% ~ 20%
+            }
+
+            // 최종 확률을 0.001 ~ 0.999 사이로 유지
+            bot_probability = Math.min(0.999, Math.max(0.001, bot_probability));
+
+            return bot_probability;
+        }
+
+        /**
+         * @brief UI를 갱신하고 상태를 표시합니다.
+         */
+        function updateUI(latestTrade, latestProbability, predictionText) {
+            const tableBody = document.getElementById('tradeTableBody');
+            const statusArea = document.getElementById('statusArea');
+            const featureList = document.getElementById('featureList');
+
+            // 1. Update Status
+            const totalIterations = parseInt(document.getElementById('nIterations').value);
+            statusArea.innerHTML = `
+                <div class="text-lg font-semibold text-gray-700">진행 상황: ${iteration} / ${totalIterations}</div>
+                <div class="text-sm text-gray-500 mt-1">최근 Prob: <span class="font-bold">${latestProbability.toFixed(3)}</span></div>
+            `;
+            
+            // 2. Update Feature List (모델의 특징을 UI에 표시)
+            featureList.innerHTML = `
+                <div class="flex flex-wrap gap-x-4 text-xs">
+                    ${MOCK_MODEL_FEATURES.map(f => {
+                        const val = latestTrade[f];
+                        let displayVal = (typeof val === 'number' && val > 0.001 && val < 1.0) ? val.toFixed(4) : val;
+                        let color = '';
+                        if (f === 'is_price_spike' && displayVal === 1) {
+                            color = 'text-red-600 font-bold';
+                            displayVal = "🚨 1 (핑튀는 거래)";
+                        } else if (f === 'trade_price') {
+                            displayVal = new Intl.NumberFormat('ko-KR').format(val);
+                        }
+
+                        return `<span class="whitespace-nowrap"><span class="font-medium">${f}:</span> <span class="${color}">${displayVal}</span></span>`;
+                    }).join('')}
+                </div>
+            `;
+
+            // 3. Update Table
+            // Filter and prepare data for display
+            const displayData = tradeHistory.slice(-DISPLAY_COUNT).reverse().map(t => ({
+                ...t,
+                trade_price: new Intl.NumberFormat('ko-KR').format(t.trade_price),
+                trade_date_str: new Date(t.trade_date).toLocaleTimeString('ko-KR', { hour12: false }),
+            }));
+
+            tableBody.innerHTML = displayData.map(trade => {
+                const isBot = trade.prediction === 1;
+                const rowClass = isBot ? 'bg-red-100' : 'bg-white';
+                return `
+                    <tr class="${rowClass}">
+                        <td class="p-3 whitespace-nowrap text-sm text-gray-500">${trade.id}</td>
+                        <td class="p-3 whitespace-nowrap text-sm font-medium text-gray-900">${trade.player_id}</td>
+                        <td class="p-3 whitespace-nowrap text-sm text-gray-500">${trade.trade_type}</td>
+                        <td class="p-3 whitespace-nowrap text-sm font-semibold">${trade.trade_price}</td>
+                        <td class="p-3 whitespace-nowrap text-sm text-gray-500">${trade.trade_date_str}</td>
+                        <td class="p-3 whitespace-nowrap text-sm font-bold ${isBot ? 'text-red-700' : 'text-green-700'}">
+                            ${isBot ? '🚨 게임봇' : '✅ 정상'}
+                        </td>
+                        <td class="p-3 whitespace-nowrap text-sm text-gray-600">${trade.probability.toFixed(3)}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        /**
+         * @brief 시뮬레이션 메인 루프입니다.
+         */
+        function simulationLoop() {
+            const nIterations = parseInt(document.getElementById('nIterations').value);
+            const interval = parseFloat(document.getElementById('interval').value) * 1000;
+            
+            if (!isSimulationRunning || iteration >= nIterations) {
+                stopSimulation();
+                return;
+            }
+
+            iteration++;
+
+            // 1. Generate Trade
+            const newTrade = genTrade(iteration);
+
+            // 2. Feature Engineering & Encoding
+            const features = calculateFeatures(newTrade);
+            
+            // 3. Mock Prediction
+            const probability = mockPredict(features);
+            const prediction = probability >= 0.5 ? 1 : 0;
+
+            // 4. Store Result
+            const resultTrade = {
+                ...newTrade,
+                probability: probability,
+                prediction: prediction,
+                features: features // Keep features for debugging
+            };
+
+            tradeHistory.push(resultTrade);
+            if (tradeHistory.length > MAX_HISTORY) {
+                tradeHistory.shift(); // Remove oldest trade
+            }
+
+            // 5. Update UI
+            updateUI(features, probability, prediction);
+
+            // Reset the interval to handle runtime changes to the interval setting
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+            intervalId = setTimeout(simulationLoop, interval);
+        }
+
+        /**
+         * @brief 시뮬레이션을 시작합니다.
+         */
+        function startSimulation() {
+            if (isSimulationRunning) return;
+            isSimulationRunning = true;
+            iteration = 0; // Reset iteration count on start
+            
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            
+            document.getElementById('loadStatus').innerHTML = `<span class="text-green-600">모델 로드 성공 ✅ (모의 예측 사용)</span>`;
+            document.getElementById('statusArea').innerHTML = `<div class="text-yellow-600">시뮬레이션 시작 중...</div>`;
+            tradeHistory = []; // Clear history on new start
+            lastPlayerTrade = {}; // Clear player specific history
+
+            simulationLoop();
+        }
+
+        /**
+         * @brief 시뮬레이션을 중지합니다.
+         */
+        function stopSimulation() {
+            isSimulationRunning = false;
+            if (intervalId) {
+                clearTimeout(intervalId);
+                intervalId = null;
+            }
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('statusArea').innerHTML = `<div class="text-blue-600">시뮬레이션 중지됨.</div>`;
+        }
+
+        // --- Initialization ---
+        window.onload = function() {
+            document.getElementById('startBtn').addEventListener('click', startSimulation);
+            document.getElementById('stopBtn').addEventListener('click', stopSimulation);
+            document.getElementById('stopBtn').disabled = true; // Initially disabled
+
+            // Initial UI update for feature list
+            document.getElementById('featureList').innerHTML = MOCK_MODEL_FEATURES.map(f => `<span class="whitespace-nowrap"><span class="font-medium">${f}:</span> N/A</span>`).join(' | ');
+
+            document.getElementById('loadStatus').innerHTML = `<span class="text-green-600">모델 로드 성공 ✅ (모의 예측 사용)</span>`;
+            document.getElementById('statusArea').innerHTML = `<div class="text-gray-500">시작 버튼을 눌러 시뮬레이션을 시작하세요.</div>`;
+        };
+
+    </script>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-2 flex items-center">
+            <span class="mr-2">🎮</span> GameBot Live Simulator
+        </h1>
+        <p class="text-gray-600 mb-6">랜덤 거래를 생성해 '핑튀는지' 특징을 포함한 모의 예측으로 게임봇 여부를 실시간(시뮬레이션)으로 표시합니다.</p>
+
+        <!-- Model Status & Control -->
+        <div class="card p-5 mb-6">
+            <div id="loadStatus" class="mb-4 text-sm font-medium"></div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label for="modelPath" class="block text-xs font-medium text-gray-700">Model .pkl 경로 (Mock)</label>
+                    <input type="text" id="modelPath" value="bot_detector_mock.pkl" readonly class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-gray-50 text-gray-500">
+                </div>
+                <div>
+                    <label for="nIterations" class="block text-xs font-medium text-gray-700">생성 거래 수 (총 반복)</label>
+                    <input type="number" id="nIterations" value="100" min="1" max="500" step="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="interval" class="block text-xs font-medium text-gray-700">생성 간격 (초)</label>
+                    <input type="number" id="interval" value="0.5" min="0.0" max="5.0" step="0.1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+
+            <div class="flex space-x-4">
+                <button id="startBtn" class="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150">
+                    ▶ Start Simulation
+                </button>
+                <button id="stopBtn" class="flex-1 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150">
+                    ■ Stop
+                </button>
+            </div>
+        </div>
+        
+        <!-- Status and Feature Area -->
+        <div class="card p-4 mb-6 bg-blue-50 border-l-4 border-blue-400">
+            <div id="statusArea" class="mb-3"></div>
+            <div class="text-sm font-medium text-blue-800 mb-2">현재 거래의 특징 값 (Features):</div>
+            <div id="featureList" class="text-blue-700"></div>
+        </div>
+
+        <!-- Live Table Area -->
+        <div class="table-container card">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 sticky top-0">
+                    <tr>
+                        <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                        <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Player ID</th>
+                        <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                        <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price (G)</th>
+                        <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                        <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prediction</th>
+                        <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prob</th>
+                    </tr>
+                </thead>
+                <tbody id="tradeTableBody" class="bg-white divide-y divide-gray-200">
+                    <!-- Data will be inserted here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        
+    </div>
+</body>
+</html>
