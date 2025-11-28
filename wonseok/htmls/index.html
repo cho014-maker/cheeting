@@ -1,0 +1,418 @@
+import React, { useState, useEffect } from 'react';
+import { AlertCircle, CheckCircle, Search, Settings, ThumbsUp, ThumbsDown, Save, Trash2, Calendar } from 'lucide-react';
+
+// --- 기본 데이터 및 유틸리티 ---
+
+const OFFICIAL_ALLERGENS = {
+  '1': '난류(계란)', '2': '우유', '3': '메밀', '4': '땅콩', '5': '대두(콩)',
+  '6': '밀', '7': '고등어', '8': '게', '9': '새우', '10': '돼지고기',
+  '11': '복숭아', '12': '토마토', '13': '아황산염', '14': '호두',
+  '15': '닭고기', '16': '쇠고기', '17': '오징어', '18': '조개류(굴, 전복, 홍합 포함)'
+};
+
+const DEFAULT_RISK_MAP = {
+  '난류(계란)': ['계란말이', '스크램블', '마요네즈', '카스테라'],
+  '우유': ['치즈', '요거트', '아이스크림', '버터', '크림소스', '라떼'],
+  '밀': ['빵', '국수', '라면', '파스타', '튀김옷', '밀가루', '만두피'],
+  '대두(콩)': ['두부', '콩나물', '된장', '간장', '두유'],
+  '새우': ['새우튀김', '새우', '액젓', '깐쇼새우'],
+  '돼지고기': ['제육볶음', '돈까스', '햄', '소시지', '삼겹살']
+};
+
+const STOP_WORDS = new Set([
+  '무침', '볶음', '튀김', '조림', '구이', '찜', '탕', '국', 
+  '밥', '죽', '소스', '양념', '맛있는', '반찬', '오늘의', '세트'
+]);
+
+// --- 컴포넌트 시작 ---
+
+export default function App() {
+  // --- 상태 관리 ---
+  const [neisKey, setNeisKey] = useState(() => localStorage.getItem('neisKey') || '');
+  const [geminiKey, setGeminiKey] = useState(() => localStorage.getItem('geminiKey') || '');
+  const [userAllergensInput, setUserAllergensInput] = useState(() => localStorage.getItem('userAllergens') || '');
+  
+  // 날짜 초기값: YYYY-MM-DD 형식으로 설정 (달력 입력폼 호환용)
+  const [queryDate, setQueryDate] = useState(new Date().toISOString().slice(0, 10));
+  
+  const [mealData, setMealData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // 학습 데이터 (Local Storage 연동)
+  const [riskMap, setRiskMap] = useState(() => {
+    const saved = localStorage.getItem('riskMap');
+    return saved ? JSON.parse(saved) : DEFAULT_RISK_MAP;
+  });
+  
+  const [safeMap, setSafeMap] = useState(() => {
+    const saved = localStorage.getItem('safeMap');
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  // 분석된 모든 메뉴 리스트 (학습 UI용)
+  const [allMenuItems, setAllMenuItems] = useState([]);
+
+  // --- 설정 저장 ---
+  useEffect(() => { localStorage.setItem('neisKey', neisKey); }, [neisKey]);
+  useEffect(() => { localStorage.setItem('geminiKey', geminiKey); }, [geminiKey]);
+  useEffect(() => { localStorage.setItem('userAllergens', userAllergensInput); }, [userAllergensInput]);
+  useEffect(() => { localStorage.setItem('riskMap', JSON.stringify(riskMap)); }, [riskMap]);
+  useEffect(() => { localStorage.setItem('safeMap', JSON.stringify(safeMap)); }, [safeMap]);
+
+  // --- API 호출 함수 ---
+
+  const fetchMeals = async () => {
+    if (!neisKey) {
+      setError('NEIS API 키를 입력해주세요.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setMealData(null);
+    setAllMenuItems([]);
+
+    // API용 날짜 포맷 변환 (YYYY-MM-DD -> YYYYMMDD)
+    const formattedDate = queryDate.replace(/-/g, '');
+
+    const ATPT_OFCDC_SC_CODE = "F10"; // 광주광역시 교육청
+    const SD_SCHUL_CODE = "7380076"; // 문흥중학교
+    const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${neisKey}&Type=json&pSize=100&pIndex=1&ATPT_OFCDC_SC_CODE=${ATPT_OFCDC_SC_CODE}&SD_SCHUL_CODE=${SD_SCHUL_CODE}&MLSV_YMD=${formattedDate}`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.mealServiceDietInfo) {
+        const rows = data.mealServiceDietInfo[1].row;
+        await analyzeMeals(rows);
+      } else if (data.RESULT && data.RESULT.CODE === "INFO-200") {
+        setError("해당 날짜에 급식 정보가 없습니다.");
+      } else {
+        setError("데이터를 불러오지 못했습니다. API 키를 확인하세요.");
+      }
+    } catch (err) {
+      setError(`네트워크 오류: ${err.message}. (CORS 문제일 수 있습니다)`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const checkGemini = async (menuItem, allergen) => {
+    if (!geminiKey) return false;
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
+    const prompt = `Is the Korean dish '${menuItem}' highly likely to contain the ingredient '${allergen}' as a main ingredient or part of its actual preparation? Do not consider side dishes. Answer ONLY 'Yes' or 'No'.`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      });
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toLowerCase();
+      return text?.startsWith('yes');
+    } catch (e) {
+      console.error("Gemini Error:", e);
+      return false;
+    }
+  };
+
+  // --- 핵심 분석 로직 ---
+
+  const analyzeMeals = async (rows) => {
+    const userAllergens = userAllergensInput.split(',').map(s => s.trim()).filter(Boolean);
+    const userAllergensLower = new Set(userAllergens.map(a => a.toLowerCase()));
+    
+    let analyzedRows = [];
+    let collectedMenuItems = new Set();
+
+    for (const row of rows) {
+      const dishName = row.DDISH_NM;
+      const dishParts = dishName.split('<br/>').map(p => p.trim()).filter(Boolean);
+      
+      let menuHtml = [];
+      let mealRiskFound = false;
+      let totalCodes = new Set();
+
+      for (const rawItem of dishParts) {
+        // 코드 추출 (예: 밥(1.2.5))
+        const codeMatch = rawItem.match(/\(([\d\.\s]+)\)/);
+        const codes = codeMatch ? codeMatch[1].replace(/\./g, ' ').split(/\s+/) : [];
+        const cleanItem = rawItem.replace(/\([\d\.\s]+\)/, '').trim();
+        const cleanItemLower = cleanItem.toLowerCase();
+        
+        collectedMenuItems.add(cleanItem); // 학습 UI용 수집
+
+        codes.forEach(c => totalCodes.add(c));
+        
+        // 공식 코드 이름을 리스트로 변환
+        const itemAllergyNames = codes.map(c => OFFICIAL_ALLERGENS[c]).filter(Boolean);
+        
+        let riskLevel = "NONE";
+        let detectedAllergen = ""; // 어떤 알레르기가 원인인지 저장
+
+        // 1. 공식 코드 매칭 (가장 확실)
+        const matchedOfficial = itemAllergyNames.find(name => userAllergensLower.has(name.toLowerCase()));
+        if (matchedOfficial) {
+          riskLevel = "RISK";
+          detectedAllergen = matchedOfficial;
+        }
+
+        // 2. 커스텀 맵(긍정 학습 데이터) 매칭
+        if (riskLevel === "NONE") {
+          for (const userAlg of userAllergensLower) {
+            if (riskMap[userAlg] && riskMap[userAlg].includes(cleanItem)) {
+              riskLevel = "RISK";
+              detectedAllergen = userAlg;
+              break;
+            }
+          }
+        }
+
+        // 3. AI 검증 (부정 학습 데이터가 없을 때만 실행)
+        if (riskLevel === "NONE" && geminiKey) {
+          for (const userAlg of userAllergensLower) {
+            // 부정 학습(안전하다고 학습됨) 체크
+            if (safeMap[userAlg] && safeMap[userAlg].includes(cleanItem)) {
+              continue; // AI 검사 건너뜀 (안전함)
+            }
+            
+            // 키워드 단순 매칭 (1차 필터)
+            if (cleanItem.includes(userAlg)) {
+               riskLevel = "RISK";
+               detectedAllergen = userAlg;
+               break;
+            }
+
+            // Gemini API 호출 (비동기라 순차 처리하면 느리지만 정확성을 위해)
+            // 실제 앱에서는 Promise.all로 최적화 가능
+            const isRisky = await checkGemini(cleanItem, userAlg);
+            if (isRisky) {
+              riskLevel = "SUSPICION";
+              detectedAllergen = userAlg;
+              break;
+            }
+          }
+        }
+
+        let badge = "";
+        if (riskLevel === "RISK") {
+          // 위험 배지에 원인 알레르기 표시
+          badge = <span className="text-red-600 font-bold ml-1 text-sm whitespace-nowrap">({detectedAllergen} 위험 ⚠️)</span>;
+          mealRiskFound = true;
+        } else if (riskLevel === "SUSPICION") {
+          // 의심 배지에 원인 알레르기 표시
+          badge = <span className="text-orange-500 font-bold ml-1 text-sm whitespace-nowrap">({detectedAllergen}? 의심 ❓)</span>;
+        }
+
+        menuHtml.push(<span key={cleanItem} className="mr-2 inline-block">{cleanItem}{badge}</span>);
+      }
+
+      // 해당 식사(조식/중식/석식)의 전체 알레르기 정보
+      const totalAllergenNames = Array.from(totalCodes).map(c => OFFICIAL_ALLERGENS[c]).sort();
+
+      analyzedRows.push({
+        type: row.MMEAL_SC_NM,
+        menus: menuHtml,
+        allergens: totalAllergenNames,
+        riskFound: mealRiskFound
+      });
+    }
+
+    setMealData(analyzedRows);
+    setAllMenuItems(Array.from(collectedMenuItems).sort());
+  };
+
+  // --- 학습 핸들러 ---
+
+  const handlePositiveLearning = (menu, allergen) => {
+    if (!menu || !allergen) return;
+    const newMap = { ...riskMap };
+    if (!newMap[allergen]) newMap[allergen] = [];
+    if (!newMap[allergen].includes(menu)) {
+      newMap[allergen].push(menu);
+      setRiskMap(newMap);
+      alert(`[학습 완료] '${menu}'는 이제 '${allergen}' 위험군으로 분류됩니다.`);
+    } else {
+      alert("이미 등록된 항목입니다.");
+    }
+  };
+
+  const handleNegativeLearning = (menu, allergen) => {
+    if (!menu || !allergen) return;
+    const newMap = { ...safeMap };
+    if (!newMap[allergen]) newMap[allergen] = [];
+    if (!newMap[allergen].includes(menu)) {
+      newMap[allergen].push(menu);
+      setSafeMap(newMap);
+      alert(`[학습 완료] '${menu}'는 이제 '${allergen}' 검사에서 안전한 것으로 간주되어 AI 검사를 건너뜁니다.`);
+    } else {
+      alert("이미 등록된 항목입니다.");
+    }
+  };
+
+  // --- 렌더링 ---
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-4 font-sans text-gray-800">
+      <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        
+        {/* 헤더 */}
+        <div className="bg-blue-600 p-6 text-white">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Search className="w-6 h-6" /> 급식 알레르기 체커
+          </h1>
+          <p className="text-blue-100 text-sm mt-1">AI 기반 위험/의심 메뉴 분석 및 자가 학습</p>
+        </div>
+
+        {/* 설정 영역 */}
+        <div className="p-6 border-b border-gray-100 bg-gray-50">
+          <h2 className="text-lg font-semibold flex items-center gap-2 mb-3">
+            <Settings className="w-5 h-5 text-gray-500" /> 설정
+          </h2>
+          <div className="space-y-3">
+            <input 
+              type="password" 
+              placeholder="NEIS API Key (필수)"
+              className="w-full p-2 border rounded text-sm"
+              value={neisKey}
+              onChange={(e) => setNeisKey(e.target.value)}
+            />
+            <input 
+              type="password" 
+              placeholder="Gemini API Key (AI 분석용)"
+              className="w-full p-2 border rounded text-sm"
+              value={geminiKey}
+              onChange={(e) => setGeminiKey(e.target.value)}
+            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">나의 알레르기 (쉼표 구분)</label>
+              <input 
+                type="text" 
+                placeholder="예: 우유, 새우, 복숭아"
+                className="w-full p-2 border rounded"
+                value={userAllergensInput}
+                onChange={(e) => setUserAllergensInput(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 조회 컨트롤 (날짜 선택 개선됨) */}
+        <div className="p-6 flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Calendar className="absolute left-3 top-2.5 w-5 h-5 text-gray-400 pointer-events-none" />
+            <input 
+              type="date" 
+              className="w-full pl-10 p-2 border rounded cursor-pointer"
+              value={queryDate}
+              onChange={(e) => setQueryDate(e.target.value)}
+            />
+          </div>
+          <button 
+            onClick={fetchMeals}
+            disabled={loading}
+            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:bg-blue-300 flex items-center justify-center gap-2 font-medium transition-colors"
+          >
+            {loading ? '분석 중...' : '조회'}
+          </button>
+        </div>
+
+        {/* 에러 메시지 */}
+        {error && (
+          <div className="mx-6 mb-6 p-4 bg-red-50 text-red-600 rounded-lg flex items-center gap-2">
+            <AlertCircle className="w-5 h-5" /> {error}
+          </div>
+        )}
+
+        {/* 결과 리스트 */}
+        <div className="px-6 pb-6 space-y-4">
+          {mealData && mealData.map((meal, idx) => (
+            <div key={idx} className={`p-4 rounded-lg border ${meal.riskFound ? 'border-red-200 bg-red-50' : 'border-gray-200'}`}>
+              <div className="flex justify-between items-start mb-2">
+                <span className="font-bold text-lg text-gray-700">{meal.type}</span>
+                {meal.riskFound ? <AlertCircle className="text-red-500 w-5 h-5" /> : <CheckCircle className="text-green-500 w-5 h-5" />}
+              </div>
+              <div className="text-gray-800 leading-relaxed break-keep mb-3">
+                {meal.menus}
+              </div>
+              <div className="text-xs text-gray-500 bg-white p-2 rounded border border-gray-100">
+                <span className="font-semibold">공식 알레르기 성분:</span> {meal.allergens.join(', ') || '없음'}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* 학습 인터페이스 */}
+        {mealData && (
+          <div className="bg-gray-100 p-6 border-t border-gray-200">
+            <h3 className="font-bold text-gray-700 mb-4 flex items-center gap-2">
+              <Save className="w-5 h-5" /> AI & 데이터 학습시키기
+            </h3>
+            
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* 긍정 학습 */}
+              <div className="bg-white p-4 rounded shadow-sm">
+                <div className="flex items-center gap-2 text-red-600 font-semibold mb-2">
+                  <ThumbsDown className="w-4 h-4" /> 위험 추가 (Positive)
+                </div>
+                <p className="text-xs text-gray-500 mb-3">경고가 안 떴는데 위험한 메뉴가 있나요?</p>
+                <select id="pos-menu" className="w-full p-2 border rounded mb-2 text-sm">
+                  <option value="">메뉴 선택</option>
+                  {allMenuItems.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+                <select id="pos-alg" className="w-full p-2 border rounded mb-2 text-sm">
+                  <option value="">알레르기 선택</option>
+                  {userAllergensInput.split(',').filter(Boolean).map(a => <option key={a} value={a.trim()}>{a.trim()}</option>)}
+                </select>
+                <button 
+                  onClick={() => handlePositiveLearning(
+                    document.getElementById('pos-menu').value,
+                    document.getElementById('pos-alg').value
+                  )}
+                  className="w-full bg-red-100 text-red-700 py-1.5 rounded text-sm hover:bg-red-200"
+                >
+                  위험 목록에 추가
+                </button>
+              </div>
+
+              {/* 부정 학습 */}
+              <div className="bg-white p-4 rounded shadow-sm">
+                <div className="flex items-center gap-2 text-green-600 font-semibold mb-2">
+                  <ThumbsUp className="w-4 h-4" /> 의심 제외 (Negative)
+                </div>
+                <p className="text-xs text-gray-500 mb-3">AI가 잘못 의심한 안전한 메뉴인가요?</p>
+                <select id="neg-menu" className="w-full p-2 border rounded mb-2 text-sm">
+                  <option value="">메뉴 선택</option>
+                  {allMenuItems.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+                <select id="neg-alg" className="w-full p-2 border rounded mb-2 text-sm">
+                  <option value="">알레르기 선택</option>
+                  {userAllergensInput.split(',').filter(Boolean).map(a => <option key={a} value={a.trim()}>{a.trim()}</option>)}
+                </select>
+                <button 
+                  onClick={() => handleNegativeLearning(
+                    document.getElementById('neg-menu').value,
+                    document.getElementById('neg-alg').value
+                  )}
+                  className="w-full bg-green-100 text-green-700 py-1.5 rounded text-sm hover:bg-green-200"
+                >
+                  안전 목록에 추가 (AI 무시)
+                </button>
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 mt-4 text-center">
+              * 학습 데이터는 브라우저(Local Storage)에 저장됩니다. 캐시 삭제 시 초기화됩니다.
+            </p>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
