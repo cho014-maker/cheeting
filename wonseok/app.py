@@ -188,7 +188,7 @@ with st.sidebar:
 
 # 메인 화면
 st.title("🍱 급식 알레르기 체커")
-st.markdown("AI 기반 위험/의심 메뉴 분석 및 자가 학습 (문흥중학교)")
+st.markdown("AI 기반 위험/의심 메뉴 분석 및 자가 학습 (조대부고)")
 
 col1, col2 = st.columns([2, 1])
 with col1:
